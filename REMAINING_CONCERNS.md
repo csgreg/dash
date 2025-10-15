@@ -2,15 +2,6 @@
 
 ## 🔴 Potential Issues Not Yet Fixed
 
-### 1. **State Management in ItemView**
-**File**: `ItemView.swift`
-**Issue**: Uses `@State` for item which is passed as a parameter. This can cause state synchronization issues.
-```swift
-@State private var item: Item  // ⚠️ Should use @Binding or derive from parent
-```
-**Impact**: Changes to item in parent view may not reflect in ItemView
-**Recommendation**: Consider using `@Binding` or deriving state from EnvironmentObject
-
 ### 2. **Hardcoded Order Offset**
 **File**: `ListManager.swift` - `doneItemInList()` and `unDoneItemInList()`
 **Issue**: Uses magic number `1000` to move completed items

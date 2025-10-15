@@ -8,41 +8,37 @@
 import SwiftUI
 
 struct ItemView: View {
-    @State private var item: Item;
-    @State private var isDeleted: Bool = false
-    
-    var listId: String
-    
-    init(item: Item, listId: String){
-        self.item = item
-        self.listId = listId
-    }
+    let item: Item
+    let listId: String
     
     @EnvironmentObject var listManager: ListManager
     
+    private var currentItem: Item? {
+        listManager.lists
+            .first(where: { $0.id == listId })?
+            .items
+            .first(where: { $0.id == item.id })
+    }
+    
     var body: some View {
-        if(!isDeleted){
-            Text(item.text)
-                .strikethrough(item.done)
+        if let currentItem = currentItem {
+            Text(currentItem.text)
+                .strikethrough(currentItem.done)
                 .swipeActions(edge: .trailing) {
                     Button {
-                        if(!item.done){
-                            item.done = true
-                            listManager.doneItemInList(listId: listId, itemId: item.id)
-                        }
-                        else{
-                            item.done = false
-                            listManager.unDoneItemInList(listId: listId, itemId: item.id)
+                        if currentItem.done {
+                            listManager.unDoneItemInList(listId: listId, itemId: currentItem.id)
+                        } else {
+                            listManager.doneItemInList(listId: listId, itemId: currentItem.id)
                         }
                     } label: {
-                        Image(systemName: item.done ? "arrow.clockwise" : "checkmark")
+                        Image(systemName: currentItem.done ? "arrow.clockwise" : "checkmark")
                     }
-                    .tint(item.done ? .yellow : .green)
+                    .tint(currentItem.done ? .yellow : .green)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
-                        isDeleted = true;
-                        listManager.deleteItemFromList(listId: listId, itemId: item.id)
+                        listManager.deleteItemFromList(listId: listId, itemId: currentItem.id)
                     } label: {
                         Image(systemName: "trash")
                     }
