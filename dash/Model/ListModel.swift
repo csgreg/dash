@@ -9,8 +9,8 @@ import Foundation
 
 /// Represents a shared list containing items and users
 struct Listy: Identifiable {
-    var id: String
-    var name: String
-    var items: [Item]
-    var users: [String]
+  var id: String
+  var name: String
+  var items: [Item]
+  var users: [String]
 }
