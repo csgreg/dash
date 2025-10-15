@@ -8,103 +8,103 @@
 import Foundation
 
 enum ValidationError: Error {
-  case tooShort(minLength: Int)
-  case tooLong(maxLength: Int)
-  case containsProfanity
-  case invalidCharacters
-  case empty
+    case tooShort(minLength: Int)
+    case tooLong(maxLength: Int)
+    case containsProfanity
+    case invalidCharacters
+    case empty
 }
 
-struct InputValidator {
-  // Validation constants
-  static let listNameMinLength = 3
-  static let listNameMaxLength = 50
-  static let itemNameMinLength = 2
-  static let itemNameMaxLength = 100
-  static let listCodeLength = 36  // UUID length
+enum InputValidator {
+    // Validation constants
+    static let listNameMinLength = 3
+    static let listNameMaxLength = 50
+    static let itemNameMinLength = 2
+    static let itemNameMaxLength = 100
+    static let listCodeLength = 36 // UUID length
 
-  private static let profanityList = [
-    "damn", "hell", "crap", "fuck", "shit", "bitch", "ass", "bastard",
-    "dick", "cock", "pussy", "slut", "whore", "fag", "nigger", "retard"
-  ]
-  
-  private static let allowedPattern = "^[a-zA-Z0-9\\s.,!?'-]+$"
+    private static let profanityList = [
+        "damn", "hell", "crap", "fuck", "shit", "bitch", "ass", "bastard",
+        "dick", "cock", "pussy", "slut", "whore", "fag", "nigger", "retard",
+    ]
 
-  static func validateListName(_ name: String) -> Result<String, ValidationError> {
-    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    private static let allowedPattern = "^[a-zA-Z0-9\\s.,!?'-]+$"
 
-    if trimmed.isEmpty {
-      return .failure(.empty)
+    static func validateListName(_ name: String) -> Result<String, ValidationError> {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            return .failure(.empty)
+        }
+
+        if trimmed.count < listNameMinLength {
+            return .failure(.tooShort(minLength: listNameMinLength))
+        }
+
+        if trimmed.count > listNameMaxLength {
+            return .failure(.tooLong(maxLength: listNameMaxLength))
+        }
+
+        if containsProfanity(trimmed) {
+            return .failure(.containsProfanity)
+        }
+
+        if !isValidCharacters(trimmed) {
+            return .failure(.invalidCharacters)
+        }
+
+        return .success(trimmed)
     }
 
-    if trimmed.count < listNameMinLength {
-      return .failure(.tooShort(minLength: listNameMinLength))
+    static func validateItemName(_ name: String) -> Result<String, ValidationError> {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            return .failure(.empty)
+        }
+
+        if trimmed.count < itemNameMinLength {
+            return .failure(.tooShort(minLength: itemNameMinLength))
+        }
+
+        if trimmed.count > itemNameMaxLength {
+            return .failure(.tooLong(maxLength: itemNameMaxLength))
+        }
+
+        if containsProfanity(trimmed) {
+            return .failure(.containsProfanity)
+        }
+
+        if !isValidCharacters(trimmed) {
+            return .failure(.invalidCharacters)
+        }
+
+        return .success(trimmed)
     }
 
-    if trimmed.count > listNameMaxLength {
-      return .failure(.tooLong(maxLength: listNameMaxLength))
+    /// Validates list code (UUID format)
+    static func validateListCode(_ code: String) -> Result<String, ValidationError> {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            return .failure(.empty)
+        }
+
+        if UUID(uuidString: trimmed) == nil {
+            return .failure(.invalidCharacters)
+        }
+
+        return .success(trimmed)
     }
 
-    if containsProfanity(trimmed) {
-      return .failure(.containsProfanity)
+    private static func containsProfanity(_ text: String) -> Bool {
+        let lowercased = text.lowercased()
+        return profanityList.contains { lowercased.contains($0) }
     }
 
-    if !isValidCharacters(trimmed) {
-      return .failure(.invalidCharacters)
+    private static func isValidCharacters(_ text: String) -> Bool {
+        let regex = try? NSRegularExpression(pattern: allowedPattern)
+        let range = NSRange(location: 0, length: text.utf16.count)
+        return regex?.firstMatch(in: text, range: range) != nil
     }
-
-    return .success(trimmed)
-  }
-
-  static func validateItemName(_ name: String) -> Result<String, ValidationError> {
-    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-
-    if trimmed.isEmpty {
-      return .failure(.empty)
-    }
-
-    if trimmed.count < itemNameMinLength {
-      return .failure(.tooShort(minLength: itemNameMinLength))
-    }
-
-    if trimmed.count > itemNameMaxLength {
-      return .failure(.tooLong(maxLength: itemNameMaxLength))
-    }
-
-    if containsProfanity(trimmed) {
-      return .failure(.containsProfanity)
-    }
-
-    if !isValidCharacters(trimmed) {
-      return .failure(.invalidCharacters)
-    }
-
-    return .success(trimmed)
-  }
-
-  /// Validates list code (UUID format)
-  static func validateListCode(_ code: String) -> Result<String, ValidationError> {
-    let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-
-    if trimmed.isEmpty {
-      return .failure(.empty)
-    }
-
-    if UUID(uuidString: trimmed) == nil {
-      return .failure(.invalidCharacters)
-    }
-
-    return .success(trimmed)
-  }
-
-  private static func containsProfanity(_ text: String) -> Bool {
-    let lowercased = text.lowercased()
-    return profanityList.contains { lowercased.contains($0) }
-  }
-
-  private static func isValidCharacters(_ text: String) -> Bool {
-    let regex = try? NSRegularExpression(pattern: allowedPattern)
-    let range = NSRange(location: 0, length: text.utf16.count)
-    return regex?.firstMatch(in: text, range: range) != nil
-  }
 }

@@ -9,8 +9,8 @@ import Foundation
 
 /// Represents an item in a list with completion status
 struct Item: Identifiable, Encodable {
-  var id: String
-  var text: String
-  var done: Bool = false
-  var order: Int = 0
+    var id: String
+    var text: String
+    var done: Bool = false
+    var order: Int = 0
 }
