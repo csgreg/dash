@@ -2,23 +2,6 @@
 
 ## 🔴 Potential Issues Not Yet Fixed
 
-### 2. **Hardcoded Order Offset**
-**File**: `ListManager.swift` - `doneItemInList()` and `unDoneItemInList()`
-**Issue**: Uses magic number `1000` to move completed items
-```swift
-self.lists[listIndex].items[itemIndex].order += 1000  // ⚠️ Hardcoded value
-```
-**Impact**: Could cause issues with large lists or multiple done/undone cycles
-**Recommendation**: Calculate proper order based on list bounds
-
-### 3. **List Synchronization Race Conditions**
-**File**: `ListDetailsView.swift`
-**Issue**: Local list state can get out of sync with ListManager
-```swift
-@State var list: Listy  // ⚠️ Local copy of list
-```
-**Impact**: User might see stale data or lose changes
-**Recommendation**: Work directly with ListManager's published lists
 
 ### 4. **No Validation on List/Item Creation**
 **Files**: `CreateView.swift`, `JoinView.swift`, `ListDetailsView.swift`

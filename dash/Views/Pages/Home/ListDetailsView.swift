@@ -10,25 +10,31 @@ import SwiftUI
 struct ListDetailsView: View {
     @State private var newItem: String = ""
     
-    @State var list: Listy
+    let listId: String
     
     @EnvironmentObject var listManager: ListManager
+    
+    // Computed property to get the current list from ListManager
+    private var list: Listy? {
+        listManager.lists.first(where: { $0.id == listId })
+    }
     
     var body: some View {
         ZStack{
             VStack{
                 List {
-                    ForEach(self.list.items) { item in
-                        ItemView(item: item, listId: list.id)
+                    ForEach(list?.items ?? []) { item in
+                        ItemView(item: item, listId: listId)
                     }
                     .onMove { from, to in
-                        list.items.move(fromOffsets: from, toOffset: to)
-                        for (index, item) in list.items.enumerated() {
-                            list.items[index].order = index
+                        guard var currentList = list else { return }
+                        currentList.items.move(fromOffsets: from, toOffset: to)
+                        for (index, item) in currentList.items.enumerated() {
+                            currentList.items[index].order = index
                         }
-                        listManager.updateItemsInList(listId: self.list.id, items: list.items)
+                        listManager.updateItemsInList(listId: listId, items: currentList.items)
                     }
-                }.navigationTitle(self.list.name)
+                }.navigationTitle(list?.name ?? "")
                 //add item
                 HStack{
                     //add item input
@@ -55,9 +61,9 @@ struct ListDetailsView: View {
                     
                     //add item button
                     Button(action: {
-                        let item = Item(id: UUID().uuidString, text: newItem, order: self.list.items.count)
-                        self.list.items.append(item)
-                        listManager.addItemToList(listId: self.list.id, item: item)
+                        guard let currentList = list else { return }
+                        let item = Item(id: UUID().uuidString, text: newItem, order: currentList.items.count)
+                        listManager.addItemToList(listId: listId, item: item)
                         newItem = ""
                     })
                     {
@@ -83,14 +89,14 @@ struct ListDetailsView: View {
                      Menu(content: {
                              Button(action: {
                                  let pasteboard = UIPasteboard.general
-                                 pasteboard.string = self.list.id
+                                 pasteboard.string = listId
                              }){
                                  Image(systemName: "doc.on.doc")
                                  Text("Copy code")
                              }
                          
                             Button(action: {
-                                let activityVC = UIActivityViewController(activityItems: [self.list.id], applicationActivities: nil)
+                                let activityVC = UIActivityViewController(activityItems: [listId], applicationActivities: nil)
                                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                                    let rootViewController = windowScene.windows.first?.rootViewController {
                                     rootViewController.present(activityVC, animated: true, completion: nil)
@@ -102,7 +108,7 @@ struct ListDetailsView: View {
                     
               
                              Button(action: {
-                             listManager.deleteList(listId: self.list.id)
+                             listManager.deleteList(listId: listId)
                          }){
                              Image(systemName: "trash")
                              Text("Delete")
@@ -115,8 +121,7 @@ struct ListDetailsView: View {
 
 struct ListDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        @State var list: Listy = Listy(id: "2", name: "asd", items: [], users: ["asd"])
-        ListDetailsView(list: list)
+        ListDetailsView(listId: "2")
             .environmentObject(ListManager(userId: "asd"))
     }
 }

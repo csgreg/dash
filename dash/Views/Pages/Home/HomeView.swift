@@ -20,7 +20,7 @@ struct HomeView: View {
                     ScrollView {
                         ForEach(listManager.lists) { list in
                             NavigationLink{
-                                ListDetailsView(list: list)
+                                ListDetailsView(listId: list.id)
                             } label: {
                                 ListButton(text: list.name, allItems: list.items.count, completedItems: list.items.filter({$0.done}).count, sharedWith: list.users.count ).transition(.slide).padding(.horizontal)
                             }.simultaneousGesture(TapGesture().onEnded{

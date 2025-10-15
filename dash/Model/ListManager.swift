@@ -175,9 +175,15 @@ class ListManager: ObservableObject {
     func doneItemInList(listId: String, itemId: String){
         if let listIndex = self.lists.firstIndex(where: {$0.id == listId}){
             if let itemIndex = self.lists[listIndex].items.firstIndex(where: {$0.id == itemId}){
-               
+                // Mark as done
                 self.lists[listIndex].items[itemIndex].done = true
-                self.lists[listIndex].items[itemIndex].order += 1000
+                
+                // Move to end: set order to max + 1
+                let maxOrder = self.lists[listIndex].items.map { $0.order }.max() ?? 0
+                self.lists[listIndex].items[itemIndex].order = maxOrder + 1
+                
+                // Re-sort items
+                self.lists[listIndex].items.sort(by: { $0.order < $1.order })
                 
                 let listRef = db.collection("lists").document(listId)
                 listRef.updateData([
@@ -198,9 +204,16 @@ class ListManager: ObservableObject {
     func unDoneItemInList(listId: String, itemId: String){
         if let listIndex = self.lists.firstIndex(where: {$0.id == listId}){
             if let itemIndex = self.lists[listIndex].items.firstIndex(where: {$0.id == itemId}){
-               
+                // Mark as undone
                 self.lists[listIndex].items[itemIndex].done = false
-                self.lists[listIndex].items[itemIndex].order -= 1000
+                
+                // Move to end of undone items (before first done item)
+                let undoneItems = self.lists[listIndex].items.filter { !$0.done && $0.id != itemId }
+                let maxUndoneOrder = undoneItems.map { $0.order }.max() ?? -1
+                self.lists[listIndex].items[itemIndex].order = maxUndoneOrder + 1
+                
+                // Re-sort items
+                self.lists[listIndex].items.sort(by: { $0.order < $1.order })
                 
                 let listRef = db.collection("lists").document(listId)
                 listRef.updateData([
