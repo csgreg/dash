@@ -1,0 +1,75 @@
+# General macOS
+###################################
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Build generated
+###################################
+build/
+DerivedData/
+*.o
+*.lo
+*.la
+*.lai
+*.so
+*.dylib
+*.a
+
+# Executables
+###################################
+*.app
+*.ipa
+
+# Debug symbols
+###################################
+*.dSYM/
+
+# Archived Applications
+###################################
+*.xcarchive
+
+# User-specific settings
+###################################
+# Xcode User Settings
+*.xcodeproj/*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/*.xcworkspace/xcshareddata/xcschemes/*-USER*.xcscheme
+*.xcworkspace/xcshareddata/xcschemes/*-USER*.xcscheme
+
+# Swift Package Manager
+###################################
+.build/
+Packages/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+*.xcworkspace/xcshareddata/swiftpm/
+.swiftpm/
+
+# Playgrounds
+###################################
+timeline.xctimeline
+playground.xcworkspace
+
+# Fastlane
+###################################
+fastlane/report.xml
+fastlane/test_output/
+fastlane/screenshots/
+fastlane/.bundle/
+
+# Secrets / Sensitive Data
+###################################
+Secrets.xcconfig
+keys.plist
+credentials.json
+.env
+
+# Temporary Files
+###################################
+*.swp
+*~
+*.orig
