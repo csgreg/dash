@@ -14,6 +14,7 @@ class ListManager: ObservableObject {
     var userId: String
 
     private let firestore = Firestore.firestore()
+    private var listenerRegistration: ListenerRegistration?
 
     @Published var lists: [Listy] = []
     @Published var currentListIndex = 0
@@ -26,8 +27,14 @@ class ListManager: ObservableObject {
         }
     }
 
+    deinit {
+        listenerRegistration?.remove()
+    }
+
     func fetchLists() async {
-        firestore.collection("lists").whereField("users", arrayContains: userId)
+        listenerRegistration?.remove()
+
+        listenerRegistration = firestore.collection("lists").whereField("users", arrayContains: userId)
             .addSnapshotListener { [weak self] querySnapshot, error in
                 guard let self = self else { return }
 

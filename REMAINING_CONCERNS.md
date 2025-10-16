@@ -2,35 +2,6 @@
 
 ## 🔴 Potential Issues Not Yet Fixed
 
-### 5. **Firebase Query Not Optimized**
-
-**File**: `ListManager.swift` - `fetchLists()`
-**Issue**: Uses snapshot listener that fetches entire document on any change
-**Impact**: Unnecessary data transfer and processing
-**Recommendation**: Use Firestore field-level listeners or implement pagination
-
-## ⚠️ Security Concerns
-
-### 1. **No Backend Validation**
-
-- All list operations trust client-side validation
-- No Firestore security rules mentioned
-- Users could potentially access/modify any list with the ID
-
-**Recommendation**: Implement Firestore Security Rules:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /lists/{listId} {
-      allow read, write: if request.auth != null &&
-                         request.auth.uid in resource.data.users;
-    }
-  }
-}
-```
-
 ### 2. **Exposed List IDs**
 
 - List IDs are shared as join codes
@@ -47,16 +18,6 @@ service cloud.firestore {
 **Recommendation**: Use Keychain for sensitive data or rely on Firebase Auth state
 
 ## 🐛 Potential Runtime Issues
-
-### 1. **Memory Leaks in Snapshot Listeners**
-
-**File**: `ListManager.swift`
-**Issue**: Snapshot listener not stored or removed
-
-```swift
-db.collection("lists").whereField("users", arrayContains: userId)
-    .addSnapshotListener { ... }  // ⚠️ Listener never removed
-```
 
 **Recommendation**: Store listener registration and remove on deinit
 
