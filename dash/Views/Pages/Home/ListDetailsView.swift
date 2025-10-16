@@ -34,12 +34,15 @@ struct ListDetailsView: View {
                         ItemView(item: item, listId: listId)
                     }
                     .onMove { from, moveTo in
-                        guard var currentList = list else { return }
-                        currentList.items.move(fromOffsets: from, toOffset: moveTo)
-                        for (index, item) in currentList.items.enumerated() {
-                            currentList.items[index].order = index
+                        guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else { return }
+
+                        // Update the actual list in listManager for immediate UI feedback
+                        listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
+
+                        // Update order for each item individually in Firestore
+                        for (index, item) in listManager.lists[listIndex].items.enumerated() {
+                            listManager.updateItemOrder(listId: listId, itemId: item.id, newOrder: index)
                         }
-                        listManager.updateItemsInList(listId: listId, items: currentList.items)
                     }
                 }.navigationTitle(list?.name ?? "")
                 // add item

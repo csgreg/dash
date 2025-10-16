@@ -15,6 +15,7 @@ class ListManager: ObservableObject {
 
     private let firestore = Firestore.firestore()
     private var listenerRegistration: ListenerRegistration?
+    private var itemListeners: [String: ListenerRegistration] = [:]
 
     @Published var lists: [Listy] = []
     @Published var currentListIndex = 0
@@ -29,6 +30,7 @@ class ListManager: ObservableObject {
 
     deinit {
         listenerRegistration?.remove()
+        itemListeners.values.forEach { $0.remove() }
     }
 
     func fetchLists() async {
@@ -52,21 +54,27 @@ class ListManager: ObservableObject {
 
                     switch diff.type {
                     case .added:
-                        // Parse and add new list
+                        // Parse and add new list (without items)
                         let list = self.parseList(documentID: documentID, data: data)
                         self.lists.append(list)
                         print("Added list: \(list.name)")
+                        // Start listening to items subcollection
+                        self.listenToItems(for: documentID)
 
                     case .modified:
-                        // Update existing list
+                        // Update existing list metadata (preserve items)
                         if let index = self.lists.firstIndex(where: { $0.id == documentID }) {
-                            let list = self.parseList(documentID: documentID, data: data)
-                            self.lists[index] = list
-                            print("Modified list: \(list.name)")
+                            let name = data["name"] as? String ?? ""
+                            let users = data["users"] as? [String] ?? []
+                            self.lists[index].name = name
+                            self.lists[index].users = users
+                            print("Modified list: \(name)")
                         }
 
                     case .removed:
-                        // Remove list
+                        // Remove list and stop listening to items
+                        self.itemListeners[documentID]?.remove()
+                        self.itemListeners.removeValue(forKey: documentID)
                         self.lists.removeAll(where: { $0.id == documentID })
                         print("Removed list: \(documentID)")
                     }
@@ -75,31 +83,77 @@ class ListManager: ObservableObject {
         isLoading = false
     }
 
-    /// Parses Firestore document data into a Listy object
+    /// Parses Firestore document data into a Listy object (without items)
     private func parseList(documentID: String, data: [String: Any]) -> Listy {
         let name = data["name"] as? String ?? ""
         let users = data["users"] as? [String] ?? []
-        var list = Listy(id: documentID, name: name, items: [], users: users)
+        // Items will be populated by the items subcollection listener
+        return Listy(id: documentID, name: name, items: [], users: users)
+    }
 
-        if let items = data["items"] as? [[String: Any]] {
-            for item in items {
-                let text = item["text"] as? String ?? ""
-                let id = item["id"] as? String ?? ""
-                let done = item["done"] as? Bool ?? false
-                let order = item["order"] as? Int ?? 0
-                list.items.append(Item(id: id, text: text, done: done, order: order))
-            }
+    /// Sets up a listener for items in a specific list
+    private func listenToItems(for listId: String) {
+        // Prevent duplicate listeners
+        if itemListeners[listId] != nil {
+            return
         }
 
-        list.items = list.items.sorted(by: { $0.order < $1.order })
-        return list
+        let itemsRef = firestore.collection("lists").document(listId).collection("items")
+
+        let listener = itemsRef.addSnapshotListener { [weak self] querySnapshot, error in
+            guard let self = self else { return }
+
+            guard let snapshot = querySnapshot else {
+                if let error = error {
+                    print("Error fetching items: \(error.localizedDescription)")
+                }
+                return
+            }
+
+            guard let listIndex = self.lists.firstIndex(where: { $0.id == listId }) else {
+                return
+            }
+
+            // Process item changes
+            for diff in snapshot.documentChanges {
+                let data = diff.document.data()
+                let itemId = diff.document.documentID
+
+                switch diff.type {
+                case .added:
+                    let item = self.parseItem(itemId: itemId, data: data)
+                    self.lists[listIndex].items.append(item)
+
+                case .modified:
+                    if let itemIndex = self.lists[listIndex].items.firstIndex(where: { $0.id == itemId }) {
+                        let item = self.parseItem(itemId: itemId, data: data)
+                        self.lists[listIndex].items[itemIndex] = item
+                    }
+
+                case .removed:
+                    self.lists[listIndex].items.removeAll(where: { $0.id == itemId })
+                }
+            }
+
+            // Keep items sorted
+            self.lists[listIndex].items.sort(by: { $0.order < $1.order })
+        }
+
+        itemListeners[listId] = listener
+    }
+
+    /// Parses item document data into an Item object
+    private func parseItem(itemId: String, data: [String: Any]) -> Item {
+        let text = data["text"] as? String ?? ""
+        let done = data["done"] as? Bool ?? false
+        let order = data["order"] as? Int ?? 0
+        return Item(id: itemId, text: text, done: done, order: order)
     }
 
     func createList(listName: String, completion: @escaping (String) -> Void) {
         let uid = UUID().uuidString
         firestore.collection("lists").document(uid).setData([
             "name": listName,
-            "items": [],
             "users": [userId],
         ]) { err in
             if let err = err {
@@ -123,20 +177,8 @@ class ListManager: ObservableObject {
             if let document = document, document.exists {
                 let data = document.data()
                 if let data {
-                    let id = document.documentID
-                    let name = data["name"] as? String ?? ""
                     var users = data["users"] as? [String] ?? []
                     users.append(userId)
-                    var list = Listy(id: id, name: name, items: [], users: users)
-                    let items = data["items"] as? NSArray as? [NSDictionary] as? [[String: Any]]
-                    items?.forEach { item in
-                        let text = item["text"] as? String ?? ""
-                        let id = item["id"] as? String ?? ""
-                        let done = item["done"] as? Bool ?? false
-                        let order = item["order"] as? Int ?? 0
-                        list.items.append(Item(id: id, text: text, done: done, order: order))
-                    }
-                    self.lists.append(list)
 
                     docRef.updateData([
                         "users": users,
@@ -146,6 +188,7 @@ class ListManager: ObservableObject {
                             completion("Failed to join, check your internet connection or try again!")
                         } else {
                             print("Document successfully updated!")
+                            completion("Successfully joined the list!")
                         }
                     }
                 }
@@ -157,38 +200,18 @@ class ListManager: ObservableObject {
     }
 
     func addItemToList(listId: String, item: Item) {
-        if let index = lists.firstIndex(where: { $0.id == listId }) {
-            lists[index].items.append(item)
-            let listRef = firestore.collection("lists").document(listId)
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(item.id)
 
-            listRef.updateData([
-                "items": lists[index].items.map {
-                    ["id": $0.id, "text": $0.text, "done": $0.done, "order": $0.order]
-                },
-            ]) { err in
-                if let err = err {
-                    print("Error updating document: \(err)")
-                } else {
-                    print("Document successfully updated!")
-                }
-            }
-        }
-    }
-
-    func updateItemsInList(listId: String, items: [Item]) {
-        if let index = lists.firstIndex(where: { $0.id == listId }) {
-            let listRef = firestore.collection("lists").document(listId)
-
-            listRef.updateData([
-                "items": items.map {
-                    ["id": $0.id, "text": $0.text, "done": $0.done, "order": $0.order]
-                },
-            ]) { err in
-                if let err = err {
-                    print("Error updating document: \(err)")
-                } else {
-                    print("Document successfully updated!")
-                }
+        itemRef.setData([
+            "text": item.text,
+            "done": item.done,
+            "order": item.order,
+        ]) { err in
+            if let err = err {
+                print("Error adding item: \(err)")
+            } else {
+                print("Item successfully added!")
             }
         }
     }
@@ -211,81 +234,78 @@ class ListManager: ObservableObject {
     }
 
     func doneItemInList(listId: String, itemId: String) {
-        if let listIndex = lists.firstIndex(where: { $0.id == listId }) {
-            if let itemIndex = lists[listIndex].items.firstIndex(where: { $0.id == itemId }) {
-                // Mark as done
-                lists[listIndex].items[itemIndex].done = true
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
 
-                // Move to end: set order to max + 1
-                let maxOrder = lists[listIndex].items.map { $0.order }.max() ?? 0
-                lists[listIndex].items[itemIndex].order = maxOrder + 1
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
 
-                // Re-sort items
-                lists[listIndex].items.sort(by: { $0.order < $1.order })
+        firestore.runTransaction({ transaction, _ -> Any? in
+            let maxOrder = self.lists[listIndex].items.map { $0.order }.max() ?? 0
 
-                let listRef = firestore.collection("lists").document(listId)
-                listRef.updateData([
-                    "items": lists[listIndex].items.map {
-                        ["id": $0.id, "text": $0.text, "done": $0.done, "order": $0.order]
-                    },
-                ]) { err in
-                    if let err = err {
-                        print("Error updating document: \(err)")
-                    } else {
-                        print("Document successfully updated!")
-                    }
-                }
+            transaction.updateData([
+                "done": true,
+                "order": maxOrder + 1,
+            ], forDocument: itemRef)
+
+            return nil
+        }) { _, error in
+            if let error = error {
+                print("Transaction failed: \(error)")
+            } else {
+                print("Item marked as done!")
             }
         }
     }
 
     func unDoneItemInList(listId: String, itemId: String) {
-        if let listIndex = lists.firstIndex(where: { $0.id == listId }) {
-            if let itemIndex = lists[listIndex].items.firstIndex(where: { $0.id == itemId }) {
-                // Mark as undone
-                lists[listIndex].items[itemIndex].done = false
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
 
-                // Move to end of undone items (before first done item)
-                let undoneItems = lists[listIndex].items.filter { !$0.done && $0.id != itemId }
-                let maxUndoneOrder = undoneItems.map { $0.order }.max() ?? -1
-                lists[listIndex].items[itemIndex].order = maxUndoneOrder + 1
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
 
-                // Re-sort items
-                lists[listIndex].items.sort(by: { $0.order < $1.order })
+        firestore.runTransaction({ transaction, _ -> Any? in
+            let undoneItems = self.lists[listIndex].items.filter { !$0.done && $0.id != itemId }
+            let maxUndoneOrder = undoneItems.map { $0.order }.max() ?? -1
 
-                let listRef = firestore.collection("lists").document(listId)
-                listRef.updateData([
-                    "items": lists[listIndex].items.map {
-                        ["id": $0.id, "text": $0.text, "done": $0.done, "order": $0.order]
-                    },
-                ]) { err in
-                    if let err = err {
-                        print("Error updating document: \(err)")
-                    } else {
-                        print("Document successfully updated!")
-                    }
-                }
+            transaction.updateData([
+                "done": false,
+                "order": maxUndoneOrder + 1,
+            ], forDocument: itemRef)
+
+            return nil
+        }) { _, error in
+            if let error = error {
+                print("Transaction failed: \(error)")
+            } else {
+                print("Item marked as undone!")
             }
         }
     }
 
     func deleteItemFromList(listId: String, itemId: String) {
-        if let listIndex = lists.firstIndex(where: { $0.id == listId }) {
-            if let itemIndex = lists[listIndex].items.firstIndex(where: { $0.id == itemId }) {
-                lists[listIndex].items.remove(at: itemIndex)
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
 
-                let listRef = firestore.collection("lists").document(listId)
-                listRef.updateData([
-                    "items": lists[listIndex].items.map {
-                        ["id": $0.id, "text": $0.text, "done": $0.done, "order": $0.order]
-                    },
-                ]) { err in
-                    if let err = err {
-                        print("Error updating document: \(err)")
-                    } else {
-                        print("Document successfully updated!")
-                    }
-                }
+        itemRef.delete { err in
+            if let err = err {
+                print("Error deleting item: \(err)")
+            } else {
+                print("Item successfully deleted!")
+            }
+        }
+    }
+
+    func updateItemOrder(listId: String, itemId: String, newOrder: Int) {
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
+
+        itemRef.updateData([
+            "order": newOrder,
+        ]) { err in
+            if let err = err {
+                print("Error updating item order: \(err)")
+            } else {
+                print("Item order updated!")
             }
         }
     }
