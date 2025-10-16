@@ -16,6 +16,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         FirebaseApp.configure()
 
+        // Enable Firestore offline persistence for better offline handling
+        let firestore = Firestore.firestore()
+        let settings = FirestoreSettings()
+        settings.isPersistenceEnabled = true
+        settings.cacheSizeBytes = FirestoreCacheSizeUnlimited
+        firestore.settings = settings
+
         return true
     }
 }
