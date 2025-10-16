@@ -28,33 +28,64 @@ class ListManager: ObservableObject {
 
     func fetchLists() async {
         firestore.collection("lists").whereField("users", arrayContains: userId)
-            .addSnapshotListener { querySnapshot, error in
-                guard let documents = querySnapshot?.documents else {
+            .addSnapshotListener { [weak self] querySnapshot, error in
+                guard let self = self else { return }
+
+                guard let snapshot = querySnapshot else {
                     if let error = error {
                         print("Error fetching documents: \(error.localizedDescription)")
                     }
                     return
                 }
-                var incomingLists: [Listy] = []
-                for data in documents {
-                    let name = data["name"]! as? String ?? ""
-                    let users = data["users"]! as? [String] ?? []
-                    var list = Listy(id: data.documentID, name: name, items: [], users: users)
-                    let items = data["items"] as? NSArray as? [NSDictionary] as? [[String: Any]]
-                    items?.forEach { item in
-                        let text = item["text"] as? String ?? ""
-                        let id = item["id"] as? String ?? ""
-                        let done = item["done"] as? Bool ?? false
-                        let order = item["order"] as? Int ?? 0
-                        list.items.append(Item(id: id, text: text, done: done, order: order))
+
+                // Process only document changes instead of rebuilding entire list
+                for diff in snapshot.documentChanges {
+                    let data = diff.document.data()
+                    let documentID = diff.document.documentID
+
+                    switch diff.type {
+                    case .added:
+                        // Parse and add new list
+                        let list = self.parseList(documentID: documentID, data: data)
+                        self.lists.append(list)
+                        print("Added list: \(list.name)")
+
+                    case .modified:
+                        // Update existing list
+                        if let index = self.lists.firstIndex(where: { $0.id == documentID }) {
+                            let list = self.parseList(documentID: documentID, data: data)
+                            self.lists[index] = list
+                            print("Modified list: \(list.name)")
+                        }
+
+                    case .removed:
+                        // Remove list
+                        self.lists.removeAll(where: { $0.id == documentID })
+                        print("Removed list: \(documentID)")
                     }
-                    list.items = list.items.sorted(by: { $0.order < $1.order })
-                    incomingLists.append(list)
                 }
-                self.lists = incomingLists
-                print("firestore updated, lists:", self.lists)
             }
         isLoading = false
+    }
+
+    /// Parses Firestore document data into a Listy object
+    private func parseList(documentID: String, data: [String: Any]) -> Listy {
+        let name = data["name"] as? String ?? ""
+        let users = data["users"] as? [String] ?? []
+        var list = Listy(id: documentID, name: name, items: [], users: users)
+
+        if let items = data["items"] as? [[String: Any]] {
+            for item in items {
+                let text = item["text"] as? String ?? ""
+                let id = item["id"] as? String ?? ""
+                let done = item["done"] as? Bool ?? false
+                let order = item["order"] as? Int ?? 0
+                list.items.append(Item(id: id, text: text, done: done, order: order))
+            }
+        }
+
+        list.items = list.items.sorted(by: { $0.order < $1.order })
+        return list
     }
 
     func createList(listName: String, completion: @escaping (String) -> Void) {
