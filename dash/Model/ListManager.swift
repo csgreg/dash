@@ -234,23 +234,14 @@ class ListManager: ObservableObject {
     }
 
     func doneItemInList(listId: String, itemId: String) {
-        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
-
         let itemRef = firestore.collection("lists").document(listId)
             .collection("items").document(itemId)
 
-        firestore.runTransaction({ transaction, _ -> Any? in
-            let maxOrder = self.lists[listIndex].items.map { $0.order }.max() ?? 0
-
-            transaction.updateData([
-                "done": true,
-                "order": maxOrder + 1,
-            ], forDocument: itemRef)
-
-            return nil
-        }) { _, error in
+        itemRef.updateData([
+            "done": true,
+        ]) { error in
             if let error = error {
-                print("Transaction failed: \(error)")
+                print("Error marking item as done: \(error)")
             } else {
                 print("Item marked as done!")
             }
@@ -258,24 +249,14 @@ class ListManager: ObservableObject {
     }
 
     func unDoneItemInList(listId: String, itemId: String) {
-        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
-
         let itemRef = firestore.collection("lists").document(listId)
             .collection("items").document(itemId)
 
-        firestore.runTransaction({ transaction, _ -> Any? in
-            let undoneItems = self.lists[listIndex].items.filter { !$0.done && $0.id != itemId }
-            let maxUndoneOrder = undoneItems.map { $0.order }.max() ?? -1
-
-            transaction.updateData([
-                "done": false,
-                "order": maxUndoneOrder + 1,
-            ], forDocument: itemRef)
-
-            return nil
-        }) { _, error in
+        itemRef.updateData([
+            "done": false,
+        ]) { error in
             if let error = error {
-                print("Transaction failed: \(error)")
+                print("Error marking item as undone: \(error)")
             } else {
                 print("Item marked as undone!")
             }
@@ -306,6 +287,24 @@ class ListManager: ObservableObject {
                 print("Error updating item order: \(err)")
             } else {
                 print("Item order updated!")
+            }
+        }
+    }
+
+    func updateMultipleItemOrders(listId: String, items: [(itemId: String, order: Int)]) {
+        let batch = firestore.batch()
+
+        for item in items {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.itemId)
+            batch.updateData(["order": item.order], forDocument: itemRef)
+        }
+
+        batch.commit { error in
+            if let error = error {
+                print("Error updating item orders: \(error)")
+            } else {
+                print("All item orders updated in batch!")
             }
         }
     }

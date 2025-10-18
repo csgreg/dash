@@ -39,10 +39,11 @@ struct ListDetailsView: View {
                         // Update the actual list in listManager for immediate UI feedback
                         listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
 
-                        // Update order for each item individually in Firestore
-                        for (index, item) in listManager.lists[listIndex].items.enumerated() {
-                            listManager.updateItemOrder(listId: listId, itemId: item.id, newOrder: index)
+                        // Batch update all item orders in Firestore with a single request
+                        let itemsToUpdate = listManager.lists[listIndex].items.enumerated().map { index, item in
+                            (itemId: item.id, order: index)
                         }
+                        listManager.updateMultipleItemOrders(listId: listId, items: itemsToUpdate)
                     }
                 }
                 .preferredColorScheme(.light)
