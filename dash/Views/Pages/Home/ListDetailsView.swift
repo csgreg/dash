@@ -44,32 +44,33 @@ struct ListDetailsView: View {
                             listManager.updateItemOrder(listId: listId, itemId: item.id, newOrder: index)
                         }
                     }
-                }.navigationTitle(list?.name ?? "")
+                }
+                .preferredColorScheme(.light)
+                .navigationTitle(list?.name ?? "")
                 // add item
                 HStack {
-                    // add item input
+                    // add item input - liquid glass style
                     HStack {
                         Image(systemName: "square.and.pencil")
                             .foregroundColor(Color("purple"))
+                            .font(.system(size: 16, weight: .semibold))
                         TextField("Item Name", text: $newItem)
+                            .font(.system(size: 16, weight: .medium))
 
                         Spacer()
 
                         if !newItem.isEmpty {
-                            Image(systemName: isValidInput ? "checkmark" : "xmark")
-                                .fontWeight(.bold)
+                            Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(isValidInput ? .green : .red)
                         }
                     }
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(lineWidth: 2)
-                            .foregroundColor(Color("purple"))
-                    )
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .padding(.leading)
 
-                    // add item button
+                    // add item button - liquid glass style
                     Button(
                         action: {
                             guard let currentList = list else { return }
@@ -80,67 +81,62 @@ struct ListDetailsView: View {
                         label: {
                             Text("Add")
                                 .foregroundColor(.white)
-                                .font(.title3)
-                                .bold()
+                                .font(.system(size: 16, weight: .bold))
                                 .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    .linearGradient(
-                                        colors: [Color("purple").opacity(1), Color("purple").opacity(0.5)],
-                                        startPoint: .topLeading, endPoint: .bottomTrailing
-                                    )
-                                )
-                                .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 14)
+                                .background(Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                                 .frame(maxWidth: 100)
-                                .padding(.trailing)
                         }
                     )
                     .disabled(!isValidInput)
-                    .opacity(isValidInput ? 1.0 : 0.6)
+                    .opacity(isValidInput ? 1.0 : 0.5)
+                    .padding(.trailing)
                 }.frame(maxWidth: .infinity, alignment: .bottom)
+                    .padding(.bottom, 8)
             }
-        }.preferredColorScheme(.light)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu(
-                        content: {
-                            Button(action: {
-                                let pasteboard = UIPasteboard.general
-                                pasteboard.string = listId
-                            }) {
-                                Image(systemName: "doc.on.doc")
-                                Text("Copy code")
-                            }
-
-                            Button(action: {
-                                let activityVC = UIActivityViewController(
-                                    activityItems: [listId], applicationActivities: nil
-                                )
-                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                   let rootViewController = windowScene.windows.first?.rootViewController
-                                {
-                                    rootViewController.present(activityVC, animated: true, completion: nil)
-                                }
-                            }, label: {
-                                Image(systemName: "square.and.arrow.up")
-                                Text("Share")
-                            })
-
-                            Button(action: {
-                                listManager.deleteList(listId: listId)
-                            }, label: {
-                                Image(systemName: "trash")
-                                Text("Delete")
-                            })
-                        }, label: {
-                            Image(systemName: "gearshape.fill")
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                EditButton()
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu(
+                    content: {
+                        Button(action: {
+                            let pasteboard = UIPasteboard.general
+                            pasteboard.string = listId
+                        }) {
+                            Image(systemName: "doc.on.doc")
+                            Text("Copy code")
                         }
-                    )
-                }
+
+                        Button(action: {
+                            let activityVC = UIActivityViewController(
+                                activityItems: [listId], applicationActivities: nil
+                            )
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let rootViewController = windowScene.windows.first?.rootViewController
+                            {
+                                rootViewController.present(activityVC, animated: true, completion: nil)
+                            }
+                        }, label: {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                        })
+
+                        Button(action: {
+                            listManager.deleteList(listId: listId)
+                        }, label: {
+                            Image(systemName: "trash")
+                            Text("Delete")
+                        })
+                    }, label: {
+                        Image(systemName: "gearshape.fill")
+                    }
+                )
             }
+        }
     }
 }
 
