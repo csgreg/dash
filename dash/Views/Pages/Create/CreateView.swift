@@ -11,7 +11,8 @@ import SwiftUI
 
 struct CreateView: View {
     @State var listName: String = ""
-    @State var selectedEmoji: String? = nil
+    @State var selectedEmoji: String?
+    @State var selectedColor: String?
     @State var showAlert: Bool = false
     @State var alertMessage: String = ""
 
@@ -64,17 +65,22 @@ struct CreateView: View {
                     EmojiSelector(selectedEmoji: $selectedEmoji)
                         .padding(.horizontal)
 
+                    // Color selector
+                    ColorSelector(selectedColor: $selectedColor)
+                        .padding(.horizontal)
+
                     Spacer()
 
                     // Create button - liquid glass style
                     Button(action: {
-                        listManager.createList(listName: self.listName, emoji: self.selectedEmoji) { message in
+                        listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { message in
                             self.alertMessage = message
                             self.showAlert = true
                             // Reset form on success
                             if message.contains("successfully") {
                                 self.listName = ""
                                 self.selectedEmoji = nil
+                                self.selectedColor = nil
                             }
                         }
                     }) {
@@ -199,6 +205,101 @@ struct EmojiSelector: View {
                     .padding(12)
                 }
                 .frame(maxHeight: 300)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+    }
+}
+
+// MARK: - Color Selector Component
+
+struct ColorSelector: View {
+    @Binding var selectedColor: String?
+    @State private var isExpanded: Bool = false
+
+    let availableColors = [
+        (name: "purple", displayName: "Purple"),
+        (name: "red", displayName: "Red"),
+        (name: "yellow", displayName: "Yellow"),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header with selected color or placeholder
+            Button(action: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    // Color preview or placeholder
+                    if let colorName = selectedColor {
+                        Circle()
+                            .fill(Color(colorName))
+                            .frame(width: 24, height: 24)
+                    } else {
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                            .frame(width: 24, height: 24)
+                    }
+
+                    Text(selectedColor == nil ? "Select color (optional)" : "Change color")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color.gray.opacity(0.5))
+
+                    Spacer()
+
+                    // Clear button if color is selected
+                    if selectedColor != nil {
+                        Button(action: {
+                            withAnimation {
+                                selectedColor = nil
+                            }
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color("dark-gray").opacity(0.5))
+                        }
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color("purple"))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            }
+
+            // Color options (expanded)
+            if isExpanded {
+                HStack(spacing: 12) {
+                    ForEach(availableColors, id: \.name) { color in
+                        Button(action: {
+                            withAnimation {
+                                selectedColor = color.name
+                                isExpanded = false
+                            }
+                        }) {
+                            Circle()
+                                .fill(Color(color.name))
+                                .frame(width: 50, height: 50)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 3)
+                                        .opacity(selectedColor == color.name ? 1 : 0)
+                                )
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color(color.name), lineWidth: 3)
+                                        .scaleEffect(1.15)
+                                        .opacity(selectedColor == color.name ? 0.5 : 0)
+                                )
+                        }
+                    }
+                }
+                .padding(12)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .transition(.scale.combined(with: .opacity))
             }

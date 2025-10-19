@@ -34,7 +34,9 @@ struct ListDetailsView: View {
                         ItemView(item: item, listId: listId)
                     }
                     .onMove { from, moveTo in
-                        guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else { return }
+                        guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
+                            return
+                        }
 
                         // Update the actual list in listManager for immediate UI feedback
                         listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
@@ -68,7 +70,9 @@ struct ListDetailsView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .background(
+                        .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    )
                     .padding(.leading)
 
                     // add item button - liquid glass style
@@ -86,7 +90,9 @@ struct ListDetailsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 14)
-                                .background(Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                .background(
+                                    Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                )
                                 .frame(maxWidth: 100)
                         }
                     )
@@ -122,27 +128,34 @@ struct ListDetailsView: View {
                             Text("Copy code")
                         }
 
-                        Button(action: {
-                            let activityVC = UIActivityViewController(
-                                activityItems: [listId], applicationActivities: nil
-                            )
-                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let rootViewController = windowScene.windows.first?.rootViewController
-                            {
-                                rootViewController.present(activityVC, animated: true, completion: nil)
+                        Button(
+                            action: {
+                                let activityVC = UIActivityViewController(
+                                    activityItems: [listId], applicationActivities: nil
+                                )
+                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let rootViewController = windowScene.windows.first?.rootViewController
+                                {
+                                    rootViewController.present(activityVC, animated: true, completion: nil)
+                                }
+                            },
+                            label: {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Share")
                             }
-                        }, label: {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share")
-                        })
+                        )
 
-                        Button(action: {
-                            listManager.deleteList(listId: listId)
-                        }, label: {
-                            Image(systemName: "trash")
-                            Text("Delete")
-                        })
-                    }, label: {
+                        Button(
+                            action: {
+                                listManager.deleteList(listId: listId)
+                            },
+                            label: {
+                                Image(systemName: "trash")
+                                Text("Delete")
+                            }
+                        )
+                    },
+                    label: {
                         Image(systemName: "gearshape.fill")
                     }
                 )

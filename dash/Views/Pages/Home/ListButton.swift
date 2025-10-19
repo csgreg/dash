@@ -9,10 +9,18 @@ import SwiftUI
 
 struct ListButton: View {
     var text: String = ""
-    var emoji: String? = nil
+    var emoji: String?
+    var color: String?
     var allItems: Int = 3
     var completedItems: Int = 3
     var sharedWith: Int = 1
+
+    private var buttonColor: Color {
+        if let colorName = color {
+            return Color(colorName)
+        }
+        return Color("purple")
+    }
 
     var body: some View {
         HStack {
@@ -52,13 +60,13 @@ struct ListButton: View {
             .foregroundColor(.white)
             .background(
                 .linearGradient(
-                    colors: [Color("purple").opacity(1), Color("purple").opacity(0.5)],
+                    colors: [buttonColor.opacity(1), buttonColor.opacity(0.5)],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             )
             .mask(RoundedRectangle(cornerRadius: 30, style: .continuous))
-            .shadow(color: Color("purple").opacity(0.3), radius: 8, x: 0, y: 12)
-            .shadow(color: Color("purple").opacity(0.3), radius: 2, x: 0, y: 1)
+            .shadow(color: buttonColor.opacity(0.3), radius: 8, x: 0, y: 12)
+            .shadow(color: buttonColor.opacity(0.3), radius: 2, x: 0, y: 1)
         }
     }
 }

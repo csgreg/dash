@@ -66,9 +66,11 @@ class ListManager: ObservableObject {
                         if let index = self.lists.firstIndex(where: { $0.id == documentID }) {
                             let name = data["name"] as? String ?? ""
                             let emoji = data["emoji"] as? String
+                            let color = data["color"] as? String
                             let users = data["users"] as? [String] ?? []
                             self.lists[index].name = name
                             self.lists[index].emoji = emoji
+                            self.lists[index].color = color
                             self.lists[index].users = users
                             print("Modified list: \(name)")
                         }
@@ -89,9 +91,10 @@ class ListManager: ObservableObject {
     private func parseList(documentID: String, data: [String: Any]) -> Listy {
         let name = data["name"] as? String ?? ""
         let emoji = data["emoji"] as? String
+        let color = data["color"] as? String
         let users = data["users"] as? [String] ?? []
         // Items will be populated by the items subcollection listener
-        return Listy(id: documentID, name: name, emoji: emoji, items: [], users: users)
+        return Listy(id: documentID, name: name, emoji: emoji, color: color, items: [], users: users)
     }
 
     /// Sets up a listener for items in a specific list
@@ -153,7 +156,7 @@ class ListManager: ObservableObject {
         return Item(id: itemId, text: text, done: done, order: order)
     }
 
-    func createList(listName: String, emoji: String? = nil, completion: @escaping (String) -> Void) {
+    func createList(listName: String, emoji: String? = nil, color: String? = nil, completion: @escaping (String) -> Void) {
         let uid = UUID().uuidString
         var data: [String: Any] = [
             "name": listName,
@@ -161,6 +164,9 @@ class ListManager: ObservableObject {
         ]
         if let emoji = emoji {
             data["emoji"] = emoji
+        }
+        if let color = color {
+            data["color"] = color
         }
         firestore.collection("lists").document(uid).setData(data) { err in
             if let err = err {
