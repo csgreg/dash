@@ -47,7 +47,7 @@ struct ListDetailsView: View {
                     }
                 }
                 .preferredColorScheme(.light)
-                .navigationTitle(list?.name ?? "")
+                .navigationBarTitleDisplayMode(.inline)
                 // add item
                 HStack {
                     // add item input - liquid glass style
@@ -98,6 +98,16 @@ struct ListDetailsView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 6) {
+                    if let emoji = list?.emoji {
+                        Text(emoji)
+                            .font(.system(size: 20))
+                    }
+                    Text(list?.name ?? "")
+                        .font(.system(size: 17, weight: .semibold))
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton()
             }

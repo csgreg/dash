@@ -23,7 +23,7 @@ struct HomeView: View {
                             ListDetailsView(listId: list.id)
                         } label: {
                             ListButton(
-                                text: list.name, allItems: list.items.count,
+                                text: list.name, emoji: list.emoji, allItems: list.items.count,
                                 completedItems: list.items.filter { $0.done }.count, sharedWith: list.users.count
                             ).transition(.slide).padding(.horizontal)
                         }.simultaneousGesture(

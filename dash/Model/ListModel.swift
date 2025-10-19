@@ -11,6 +11,7 @@ import Foundation
 struct Listy: Identifiable {
     var id: String
     var name: String
+    var emoji: String?
     var items: [Item]
     var users: [String]
 }

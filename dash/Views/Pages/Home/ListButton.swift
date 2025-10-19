@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ListButton: View {
     var text: String = ""
+    var emoji: String? = nil
     var allItems: Int = 3
     var completedItems: Int = 3
     var sharedWith: Int = 1
@@ -17,9 +18,15 @@ struct ListButton: View {
         HStack {
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(text)
-                        .customFont(.title3)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 8) {
+                        if let emoji = emoji {
+                            Text(emoji)
+                                .font(.system(size: 22))
+                        }
+                        Text(text)
+                            .customFont(.title3)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
                         Image(systemName: sharedWith > 1 ? "lock.open" : "lock").foregroundColor(
                             .white.opacity(0.5))
