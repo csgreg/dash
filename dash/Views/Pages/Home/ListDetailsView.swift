@@ -28,79 +28,87 @@ struct ListDetailsView: View {
 
     var body: some View {
         ZStack {
-            VStack {
-                List {
-                    ForEach(list?.items ?? []) { item in
-                        ItemView(item: item, listId: listId)
-                    }
-                    .onMove { from, moveTo in
-                        guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
-                            return
-                        }
-
-                        // Update the actual list in listManager for immediate UI feedback
-                        listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
-
-                        // Batch update all item orders in Firestore with a single request
-                        let itemsToUpdate = listManager.lists[listIndex].items.enumerated().map { index, item in
-                            (itemId: item.id, order: index)
-                        }
-                        listManager.updateMultipleItemOrders(listId: listId, items: itemsToUpdate)
-                    }
+            List {
+                ForEach(list?.items ?? []) { item in
+                    ItemView(item: item, listId: listId)
                 }
-                .preferredColorScheme(.light)
-                .navigationBarTitleDisplayMode(.inline)
-                // add item
-                HStack {
-                    // add item input - liquid glass style
-                    HStack {
-                        Image(systemName: "square.and.pencil")
-                            .foregroundColor(Color("purple"))
-                            .font(.system(size: 16, weight: .semibold))
-                        TextField("Item Name", text: $newItem)
-                            .font(.system(size: 16, weight: .medium))
-
-                        Spacer()
-
-                        if !newItem.isEmpty {
-                            Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(isValidInput ? .green : .red)
-                        }
+                .onMove { from, moveTo in
+                    guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
+                        return
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(
-                        .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    )
-                    .padding(.leading)
 
-                    // add item button - liquid glass style
-                    Button(
-                        action: {
-                            guard let currentList = list else { return }
-                            let item = Item(id: UUID().uuidString, text: newItem, order: currentList.items.count)
-                            listManager.addItemToList(listId: listId, item: item)
-                            newItem = ""
-                        },
-                        label: {
-                            Text("Add")
-                                .foregroundColor(.white)
-                                .font(.system(size: 16, weight: .bold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 14)
-                                .background(
-                                    Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                )
-                                .frame(maxWidth: 100)
+                    // Update the actual list in listManager for immediate UI feedback
+                    listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
+
+                    // Batch update all item orders in Firestore with a single request
+                    let itemsToUpdate = listManager.lists[listIndex].items.enumerated().map { index, item in
+                        (itemId: item.id, order: index)
+                    }
+                    listManager.updateMultipleItemOrders(listId: listId, items: itemsToUpdate)
+                }
+            }
+            .preferredColorScheme(.light)
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 80)
+            }
+
+            // Bottom section with liquid glass background - overlaid on top
+            VStack {
+                Spacer()
+                VStack(spacing: 0) {
+                    HStack {
+                        // add item input - liquid glass style
+                        HStack {
+                            Image(systemName: "square.and.pencil")
+                                .foregroundColor(Color("purple"))
+                                .font(.system(size: 16, weight: .semibold))
+                            TextField("Item Name", text: $newItem)
+                                .font(.system(size: 16, weight: .medium))
+
+                            Spacer()
+
+                            if !newItem.isEmpty {
+                                Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(isValidInput ? .green : .red)
+                            }
                         }
-                    )
-                    .disabled(!isValidInput)
-                    .opacity(isValidInput ? 1.0 : 0.5)
-                    .padding(.trailing)
-                }.frame(maxWidth: .infinity, alignment: .bottom)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .modifier(GlassEffectIfAvailable())
+                        .padding(.leading)
+
+                        // add item button - liquid glass style
+                        Button(
+                            action: {
+                                guard let currentList = list else { return }
+                                let item = Item(id: UUID().uuidString, text: newItem, order: currentList.items.count)
+                                listManager.addItemToList(listId: listId, item: item)
+                                newItem = ""
+                            },
+                            label: {
+                                Text("Add")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.horizontal, 24)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                    )
+                                    .frame(maxWidth: 100)
+                            }
+                        )
+                        .disabled(!isValidInput)
+                        .opacity(isValidInput ? 1.0 : 0.5)
+                        .modifier(GlassEffectIfAvailable())
+                        .padding(.trailing)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.top, 12)
                     .padding(.bottom, 8)
+                }
             }
         }
         .toolbar {
