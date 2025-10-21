@@ -32,7 +32,16 @@ struct HomeView: View {
                             })
                     }
                 }
-            }.navigationTitle("Lists")
+            }
+            .navigationTitle("Hey! 👋")
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 6) {
+                        Text("Your lists")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                }
+            }
         }
     }
 }

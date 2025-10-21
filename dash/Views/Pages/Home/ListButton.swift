@@ -64,7 +64,7 @@ struct ListButton: View {
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             )
-            .mask(RoundedRectangle(cornerRadius: .infinity, style: .continuous))
+            .mask(RoundedRectangle(cornerRadius: 25, style: .continuous))
             .shadow(color: buttonColor.opacity(0.3), radius: 8, x: 0, y: 12)
             .shadow(color: buttonColor.opacity(0.3), radius: 2, x: 0, y: 1)
         }

@@ -40,9 +40,6 @@ struct CreateView: View {
 
                     // List name input - liquid glass style
                     HStack {
-                        Image(systemName: "square.and.pencil")
-                            .foregroundColor(Color("purple"))
-                            .font(.system(size: 16, weight: .semibold))
                         TextField("List name", text: $listName)
                             .font(.system(size: 16, weight: .medium))
 
@@ -103,7 +100,15 @@ struct CreateView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .navigationTitle("Create new list")
+            .navigationTitle("Let's do this! 🤩")
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 6) {
+                        Text("Create new list")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                }
+            }
         }
     }
 }
