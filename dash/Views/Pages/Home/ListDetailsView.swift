@@ -128,23 +128,18 @@ struct ListDetailsView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu(
                     content: {
-                        Button(action: {
-                            let pasteboard = UIPasteboard.general
-                            pasteboard.string = listId
-                        }) {
-                            Image(systemName: "doc.on.doc")
-                            Text("Copy code")
-                        }
-
                         Button(
                             action: {
-                                let activityVC = UIActivityViewController(
-                                    activityItems: [listId], applicationActivities: nil
-                                )
-                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                   let rootViewController = windowScene.windows.first?.rootViewController
-                                {
-                                    rootViewController.present(activityVC, animated: true, completion: nil)
+                                if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
+                                    let message = "Join my list '\(list?.name ?? "Untitled")' on Dash!"
+                                    let activityVC = UIActivityViewController(
+                                        activityItems: [message, shareURL], applicationActivities: nil
+                                    )
+                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                       let rootViewController = windowScene.windows.first?.rootViewController
+                                    {
+                                        rootViewController.present(activityVC, animated: true, completion: nil)
+                                    }
                                 }
                             },
                             label: {

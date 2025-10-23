@@ -18,15 +18,17 @@ struct MainView: View {
             HomeView().preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "house")
+                    Text("Lists")
                 }
+                .tag(0)
+
             CreateView().preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "plus.square.fill.on.square.fill")
+                    Text("Create")
                 }
-            JoinView().preferredColorScheme(.light)
-                .tabItem {
-                    Image(systemName: "person.badge.plus")
-                }
+                .tag(1)
+
             Button(action: {
                 let firebaseAuth = Auth.auth()
                 do {
@@ -42,7 +44,9 @@ struct MainView: View {
             }
             .tabItem {
                 Image(systemName: "person.crop.circle")
+                Text("Profile")
             }
+            .tag(2)
         }
         .preferredColorScheme(.light)
     }

@@ -29,17 +29,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 @main
 struct DashApp: App {
-    let myUrlScheme = "com.swiftcore.dash"
-
     @AppStorage("uid") private var userID: String = ""
+    @StateObject private var deepLinkHandler = DeepLinkHandler()
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
         WindowGroup {
-            ContentView(userId: userID)
+            ContentView(userId: userID, deepLinkHandler: deepLinkHandler)
                 .onOpenURL { url in
-                    print(url)
+                    print("📱 Received URL: \(url.absoluteString)")
+                    deepLinkHandler.handleURL(url)
                 }
         }
     }
