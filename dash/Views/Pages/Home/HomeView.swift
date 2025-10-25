@@ -13,6 +13,7 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var listManager: ListManager
+    @State private var firstName: String = ""
 
     var body: some View {
         NavigationView {
@@ -33,7 +34,7 @@ struct HomeView: View {
                     }
                 }
             }
-            .navigationTitle("Hey! 👋")
+            .navigationTitle(getGreeting())
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
@@ -42,6 +43,23 @@ struct HomeView: View {
                     }
                 }
             }
+            .onAppear {
+                loadUserName()
+            }
+        }
+    }
+
+    func loadUserName() {
+        listManager.fetchUserFirstName { name in
+            firstName = name
+        }
+    }
+
+    func getGreeting() -> String {
+        if firstName.isEmpty {
+            return "Hey! 👋"
+        } else {
+            return "Hey, \(firstName)! 👋"
         }
     }
 }

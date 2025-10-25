@@ -266,6 +266,19 @@ class ListManager: ObservableObject {
         }
     }
 
+    func fetchUserFirstName(completion: @escaping (String) -> Void) {
+        let userRef = firestore.collection("users").document(userId)
+
+        userRef.getDocument { document, _ in
+            if let document = document, document.exists {
+                let firstName = document.data()?["firstName"] as? String ?? ""
+                completion(firstName)
+            } else {
+                completion("")
+            }
+        }
+    }
+
     func setSelectedList(listId: String) {
         if let index = lists.firstIndex(where: { $0.id == listId }) {
             currentListIndex = index

@@ -36,24 +36,12 @@ struct MainView: View {
                 }
                 .tag(2)
 
-            Button(action: {
-                let firebaseAuth = Auth.auth()
-                do {
-                    try firebaseAuth.signOut()
-                    withAnimation {
-                        userID = ""
-                    }
-                } catch let signOutError as NSError {
-                    print("Error signing out: %@", signOutError)
+            ProfileView().preferredColorScheme(.light)
+                .tabItem {
+                    Image(systemName: "person.crop.circle.fill")
+                    Text("Profile")
                 }
-            }) {
-                Text("Sign out")
-            }
-            .tabItem {
-                Image(systemName: "person.crop.circle")
-                Text("Profile")
-            }
-            .tag(3)
+                .tag(3)
         }
         .preferredColorScheme(.light)
     }
