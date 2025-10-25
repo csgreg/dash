@@ -29,6 +29,13 @@ struct MainView: View {
                 }
                 .tag(1)
 
+            RewardsView().preferredColorScheme(.light)
+                .tabItem {
+                    Image(systemName: "trophy.fill")
+                    Text("Rewards")
+                }
+                .tag(2)
+
             Button(action: {
                 let firebaseAuth = Auth.auth()
                 do {
@@ -46,7 +53,7 @@ struct MainView: View {
                 Image(systemName: "person.crop.circle")
                 Text("Profile")
             }
-            .tag(2)
+            .tag(3)
         }
         .preferredColorScheme(.light)
     }

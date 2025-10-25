@@ -225,6 +225,43 @@ class ListManager: ObservableObject {
                 print("Error adding item: \(err)")
             } else {
                 print("Item successfully added!")
+                // Increment user's total items created count
+                self.incrementUserItemCount()
+            }
+        }
+    }
+
+    func incrementUserItemCount() {
+        let userRef = firestore.collection("users").document(userId)
+
+        print("🎯 Incrementing item count for user: \(userId)")
+
+        // Use setData with merge to create document if it doesn't exist
+        userRef.setData([
+            "totalItemsCreated": FieldValue.increment(Int64(1)),
+            "userId": userId,
+        ], merge: true) { error in
+            if let error = error {
+                print("❌ Error incrementing item count: \(error)")
+            } else {
+                print("✅ Item count incremented successfully!")
+            }
+        }
+    }
+
+    func fetchUserItemCount(completion: @escaping (Int) -> Void) {
+        let userRef = firestore.collection("users").document(userId)
+
+        print("📊 Fetching item count for user: \(userId)")
+
+        userRef.getDocument { document, _ in
+            if let document = document, document.exists {
+                let count = document.data()?["totalItemsCreated"] as? Int ?? 0
+                print("📈 Fetched count: \(count)")
+                completion(count)
+            } else {
+                print("⚠️ User document doesn't exist yet, returning 0")
+                completion(0)
             }
         }
     }
@@ -318,6 +355,69 @@ class ListManager: ObservableObject {
                 print("Error updating item orders: \(error)")
             } else {
                 print("All item orders updated in batch!")
+            }
+        }
+    }
+
+    func markAllItemsAsDone(listId: String) {
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
+        let items = lists[listIndex].items
+
+        let batch = firestore.batch()
+
+        for item in items {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.id)
+            batch.updateData(["done": true], forDocument: itemRef)
+        }
+
+        batch.commit { error in
+            if let error = error {
+                print("Error marking all items as done: \(error)")
+            } else {
+                print("All items marked as done!")
+            }
+        }
+    }
+
+    func markAllItemsAsUndone(listId: String) {
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
+        let items = lists[listIndex].items
+
+        let batch = firestore.batch()
+
+        for item in items {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.id)
+            batch.updateData(["done": false], forDocument: itemRef)
+        }
+
+        batch.commit { error in
+            if let error = error {
+                print("Error marking all items as undone: \(error)")
+            } else {
+                print("All items marked as undone!")
+            }
+        }
+    }
+
+    func clearAllItems(listId: String) {
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
+        let items = lists[listIndex].items
+
+        let batch = firestore.batch()
+
+        for item in items {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.id)
+            batch.deleteDocument(itemRef)
+        }
+
+        batch.commit { error in
+            if let error = error {
+                print("Error clearing all items: \(error)")
+            } else {
+                print("All items cleared!")
             }
         }
     }

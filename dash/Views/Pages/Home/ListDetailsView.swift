@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ListDetailsView: View {
     @State private var newItem: String = ""
+    @State private var showClearConfirmation = false
+    @State private var showDeleteConfirmation = false
 
     let listId: String
 
@@ -148,13 +150,50 @@ struct ListDetailsView: View {
                             }
                         )
 
+                        Divider()
+
                         Button(
                             action: {
-                                listManager.deleteList(listId: listId)
+                                listManager.markAllItemsAsDone(listId: listId)
+                            },
+                            label: {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Complete All")
+                            }
+                        )
+                        .disabled((list?.items.isEmpty ?? true))
+
+                        Button(
+                            action: {
+                                listManager.markAllItemsAsUndone(listId: listId)
+                            },
+                            label: {
+                                Image(systemName: "circle")
+                                Text("Reset All")
+                            }
+                        )
+                        .disabled((list?.items.isEmpty ?? true))
+
+                        Divider()
+
+                        Button(
+                            action: {
+                                showClearConfirmation = true
+                            },
+                            label: {
+                                Image(systemName: "sparkles")
+                                Text("Clear List")
+                            }
+                        )
+                        .disabled((list?.items.isEmpty ?? true))
+
+                        Button(
+                            action: {
+                                showDeleteConfirmation = true
                             },
                             label: {
                                 Image(systemName: "trash")
-                                Text("Delete")
+                                Text("Delete List")
                             }
                         )
                     },
@@ -163,6 +202,30 @@ struct ListDetailsView: View {
                     }
                 )
             }
+        }
+        .confirmationDialog(
+            "Clear All Items",
+            isPresented: $showClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Clear All Items", role: .destructive) {
+                listManager.clearAllItems(listId: listId)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete all \(list?.items.count ?? 0) items from this list. This action cannot be undone.")
+        }
+        .confirmationDialog(
+            "Delete List",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete List", role: .destructive) {
+                listManager.deleteList(listId: listId)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete the list '\(list?.name ?? "Untitled")' and all its items. This action cannot be undone.")
         }
     }
 }
