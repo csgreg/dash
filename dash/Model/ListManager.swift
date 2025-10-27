@@ -231,52 +231,21 @@ class ListManager: ObservableObject {
         }
     }
 
+    // MARK: - User-related functions (delegated to UserManager)
+
     func incrementUserItemCount() {
-        let userRef = firestore.collection("users").document(userId)
-
-        print("🎯 Incrementing item count for user: \(userId)")
-
-        // Use setData with merge to create document if it doesn't exist
-        userRef.setData([
-            "totalItemsCreated": FieldValue.increment(Int64(1)),
-            "userId": userId,
-        ], merge: true) { error in
-            if let error = error {
-                print("❌ Error incrementing item count: \(error)")
-            } else {
-                print("✅ Item count incremented successfully!")
-            }
-        }
+        let userManager = UserManager(userId: userId)
+        userManager.incrementItemCount()
     }
 
     func fetchUserItemCount(completion: @escaping (Int) -> Void) {
-        let userRef = firestore.collection("users").document(userId)
-
-        print("📊 Fetching item count for user: \(userId)")
-
-        userRef.getDocument { document, _ in
-            if let document = document, document.exists {
-                let count = document.data()?["totalItemsCreated"] as? Int ?? 0
-                print("📈 Fetched count: \(count)")
-                completion(count)
-            } else {
-                print("⚠️ User document doesn't exist yet, returning 0")
-                completion(0)
-            }
-        }
+        let userManager = UserManager(userId: userId)
+        userManager.fetchUserItemCount(completion: completion)
     }
 
     func fetchUserFirstName(completion: @escaping (String) -> Void) {
-        let userRef = firestore.collection("users").document(userId)
-
-        userRef.getDocument { document, _ in
-            if let document = document, document.exists {
-                let firstName = document.data()?["firstName"] as? String ?? ""
-                completion(firstName)
-            } else {
-                completion("")
-            }
-        }
+        let userManager = UserManager(userId: userId)
+        userManager.fetchUserFirstName(completion: completion)
     }
 
     func setSelectedList(listId: String) {
@@ -433,5 +402,50 @@ class ListManager: ObservableObject {
                 print("All items cleared!")
             }
         }
+    }
+
+    func deleteAllUserLists(completion: @escaping (Error?) -> Void) {
+        firestore.collection("lists")
+            .whereField("users", arrayContains: userId)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("❌ Error fetching user lists: \(error)")
+                    completion(error)
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    completion(nil)
+                    return
+                }
+
+                let batch = self.firestore.batch()
+
+                for document in documents {
+                    let listRef = document.reference
+
+                    // Delete all items in the list
+                    listRef.collection("items").getDocuments { itemsSnapshot, _ in
+                        if let items = itemsSnapshot?.documents {
+                            for item in items {
+                                batch.deleteDocument(item.reference)
+                            }
+                        }
+                    }
+
+                    // Delete the list itself
+                    batch.deleteDocument(listRef)
+                }
+
+                batch.commit { error in
+                    if let error = error {
+                        print("❌ Error deleting lists: \(error)")
+                        completion(error)
+                    } else {
+                        print("✅ All lists deleted")
+                        completion(nil)
+                    }
+                }
+            }
     }
 }

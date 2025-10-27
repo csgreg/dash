@@ -15,6 +15,8 @@ struct ProfileView: View {
     @State private var firstName: String = ""
     @State private var isEditingName: Bool = false
     @State private var showSignOutConfirmation: Bool = false
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var isDeleting: Bool = false
 
     var body: some View {
         NavigationView {
@@ -147,12 +149,29 @@ struct ProfileView: View {
                             Divider()
                                 .padding(.leading, 60)
 
-                            NavigationLink(destination: Text("About")) {
+                            Button(action: {
+                                if let url = URL(string: "https://dashapp.live") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
                                 ProfileRow(
-                                    icon: "info.circle.fill",
-                                    title: "About",
+                                    icon: "globe",
+                                    title: "Website",
                                     value: "",
-                                    iconColor: .gray,
+                                    iconColor: .green,
+                                    showChevron: true
+                                )
+                            }
+
+                            Divider()
+                                .padding(.leading, 60)
+
+                            NavigationLink(destination: FeedbackView()) {
+                                ProfileRow(
+                                    icon: "envelope.fill",
+                                    title: "Send Feedback",
+                                    value: "",
+                                    iconColor: .orange,
                                     showChevron: true
                                 )
                             }
@@ -185,6 +204,33 @@ struct ProfileView: View {
                     .padding(.horizontal)
                     .padding(.top, 20)
 
+                    // Delete Account Button
+                    Button(action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        HStack {
+                            if isDeleting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                            } else {
+                                Image(systemName: "trash.fill")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Delete Account")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                        }
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.red, lineWidth: 2)
+                        )
+                    }
+                    .disabled(isDeleting)
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+
                     // App Version
                     Text("Version 1.0.0")
                         .font(.system(size: 13))
@@ -216,6 +262,14 @@ struct ProfileView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
+        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete Account", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("This will permanently delete your account and all your data. This action cannot be undone.")
+        }
     }
 
     // MARK: - Helper Functions
@@ -226,25 +280,16 @@ struct ProfileView: View {
             userEmail = user.email ?? "No email"
         }
 
-        // Load first name from Firestore
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(userID)
-
-        userRef.getDocument { document, _ in
-            if let document = document, document.exists {
-                firstName = document.data()?["firstName"] as? String ?? ""
-            }
+        // Load first name from Firestore using UserManager
+        let userManager = UserManager(userId: userID)
+        userManager.fetchUserFirstName { name in
+            self.firstName = name
         }
     }
 
     func saveFirstName() {
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(userID)
-
-        userRef.setData([
-            "firstName": firstName,
-            "userId": userID,
-        ], merge: true) { error in
+        let userManager = UserManager(userId: userID)
+        userManager.saveUserFirstName(firstName) { error in
             if let error = error {
                 print("❌ Error saving first name: \(error)")
             } else {
@@ -260,6 +305,41 @@ struct ProfileView: View {
             return String(userEmail.prefix(1)).uppercased()
         }
         return "?"
+    }
+
+    func deleteAccount() {
+        isDeleting = true
+
+        let userManager = UserManager(userId: userID)
+        let listManager = ListManager(userId: userID)
+
+        // Step 1: Delete user document
+        userManager.deleteUserDocument { error in
+            if let error = error {
+                print("❌ Error deleting user document: \(error)")
+            }
+        }
+
+        // Step 2: Delete all user's lists
+        listManager.deleteAllUserLists { error in
+            if let error = error {
+                print("❌ Error deleting lists: \(error)")
+            }
+        }
+
+        // Step 3: Delete user from Firebase Auth
+        userManager.deleteUserAccount { error in
+            self.isDeleting = false
+
+            if let error = error {
+                print("❌ Error deleting user account: \(error)")
+                // Show error alert if needed
+            } else {
+                print("✅ User account deleted successfully")
+                // Sign out to return to login screen
+                self.signOut()
+            }
+        }
     }
 
     func signOut() {
@@ -300,6 +380,7 @@ struct ProfileRow: View {
             // Title
             Text(title)
                 .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.primary)
 
             Spacer()
 
@@ -316,6 +397,7 @@ struct ProfileRow: View {
             }
         }
         .padding()
+        .contentShape(Rectangle())
     }
 }
 
