@@ -195,10 +195,9 @@ struct ProfileView: View {
                         }
                         .foregroundColor(.red)
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.red.opacity(0.1))
+                            Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                         )
                     }
                     .padding(.horizontal)
@@ -221,15 +220,15 @@ struct ProfileView: View {
                         }
                         .foregroundColor(.red)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
+                        .padding(.vertical, 14)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
                                 .stroke(Color.red, lineWidth: 2)
                         )
                     }
                     .disabled(isDeleting)
                     .padding(.horizontal)
-                    .padding(.top, 12)
+                    .padding(.top, 4)
 
                     // App Version
                     Text("Version 1.0.0")

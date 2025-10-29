@@ -133,15 +133,15 @@ struct FeedbackView: View {
                         } else {
                             Image(systemName: "paperplane.fill")
                             Text("Submit Feedback")
-                                .font(.system(size: 17, weight: .semibold))
+                                .font(.system(size: 16, weight: .bold))
                         }
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(feedbackText.isEmpty ? Color.gray : Color("purple"))
+                        feedbackText.isEmpty ? Color.gray : Color("purple"),
+                        in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                     )
                 }
                 .disabled(feedbackText.isEmpty || isSubmitting)

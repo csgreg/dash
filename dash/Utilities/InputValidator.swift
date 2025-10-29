@@ -28,7 +28,8 @@ enum InputValidator {
         "dick", "cock", "pussy", "slut", "whore", "fag", "nigger", "retard",
     ]
 
-    private static let allowedPattern = "^[a-zA-Z0-9\\s.,!?'-]+$"
+    // Updated pattern to support Unicode letters (including Hungarian: áéíóőűöü etc)
+    private static let allowedPattern = "^[\\p{L}0-9\\s.,!?'-]+$"
 
     static func validateListName(_ name: String) -> Result<String, ValidationError> {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
