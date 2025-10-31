@@ -38,48 +38,54 @@ struct LoginView: View {
                 Spacer()
 
                 // email input
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "mail")
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .semibold))
+
                     TextField("Email", text: $email)
                         .autocapitalization(.none)
-
-                    Spacer()
+                        .font(.system(size: 16, weight: .medium))
 
                     if !email.isEmpty {
-                        Image(systemName: email.isValidEmail() ? "checkmark" : "xmark")
-                            .fontWeight(.bold)
+                        Image(systemName: email.isValidEmail() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(email.isValidEmail() ? .green : .red)
                     }
                 }
-                .padding()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
+                .modifier(GlassEffectIfAvailable())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(lineWidth: 2)
-                        .foregroundColor(.black)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
-                .padding(.bottom)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
 
                 // password
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "lock")
-                    SecureField("Password", text: $password)
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .semibold))
 
-                    Spacer()
+                    SecureField("Password", text: $password)
+                        .font(.system(size: 16, weight: .medium))
 
                     if !password.isEmpty {
-                        Image(systemName: password.isValidPassword() ? "checkmark" : "xmark")
-                            .fontWeight(.bold)
+                        Image(systemName: password.isValidPassword() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(password.isValidPassword() ? .green : .red)
                     }
                 }
-                .padding()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
+                .modifier(GlassEffectIfAvailable())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(lineWidth: 2)
-                        .foregroundColor(.black)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
-                .padding(.bottom)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
 
                 // create account button
@@ -89,8 +95,10 @@ struct LoginView: View {
                     }
                 }) {
                     Text("New here? Sign up!")
-                        .foregroundColor(.black.opacity(0.7))
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .medium))
                 }
+                .padding(.top, 8)
 
                 Spacer()
                 Spacer()
@@ -111,18 +119,26 @@ struct LoginView: View {
                         loading = false
                     }
                 }) {
-                    Text("Sign In")
-                        .foregroundColor(.white)
-                        .font(.title3)
-                        .bold()
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(.black)
-                        )
-                        .padding(.horizontal)
+                    HStack(spacing: 1) {
+                        if loading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        Text("Sign In")
+                            .font(.system(size: 17, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        .black, in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                    )
                 }
+                .modifier(GlassEffectIfAvailable())
+                .padding(.horizontal)
                 .disabled(loading)
                 .alert(isPresented: $signInFail) {
                     Alert(

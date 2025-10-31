@@ -16,17 +16,26 @@ struct RewardsView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     // Hero Stats Section
-                    VStack(spacing: 12) {
-                        Image(systemName: rewardsManager.getCurrentAchievement().icon)
-                            .font(.system(size: 60))
-                            .foregroundColor(Color("purple"))
+                    VStack(spacing: 16) {
+                        // Icon in gradient circle
+                        ZStack {
+                            // Gradient circle background
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color("purple"), Color("purple").opacity(0.6)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 120, height: 120)
+                                .shadow(color: Color("purple").opacity(0.3), radius: 20, x: 0, y: 10)
 
-                        Text("\(rewardsManager.totalItemsCreated)")
-                            .font(.system(size: 48, weight: .bold))
-
-                        Text("Items Created")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(.gray)
+                            // Icon
+                            Image(systemName: rewardsManager.getCurrentAchievement().icon)
+                                .font(.system(size: 50, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
 
                         Text(rewardsManager.getCurrentAchievement().title)
                             .font(.system(size: 20, weight: .semibold))
@@ -132,7 +141,7 @@ struct RewardsView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .navigationTitle("Rewards 🏆")
+            .navigationTitle("You're crushing it! 🔥")
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Rewards")

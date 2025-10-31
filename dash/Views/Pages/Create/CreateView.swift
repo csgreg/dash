@@ -28,22 +28,24 @@ struct CreateView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 24) {
                     // Description
                     Text(
                         "Craft customized lists for any purpose, share a unique code for seamless collaboration."
                     )
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(Color("dark-gray"))
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 4)
 
-                    // List name input - liquid glass style
-                    HStack {
+                    // List name input - with icon
+                    HStack(spacing: 12) {
+                        Image(systemName: "pencil.line")
+                            .foregroundColor(Color("purple"))
+                            .font(.system(size: 16, weight: .semibold))
+
                         TextField("List name", text: $listName)
                             .font(.system(size: 16, weight: .medium))
-
-                        Spacer()
 
                         if !listName.isEmpty {
                             Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -51,24 +53,29 @@ struct CreateView: View {
                                 .foregroundColor(isValidInput ? .green : .red)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 16)
                     .background(
                         .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                     )
-                    .padding(.horizontal)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(Color("purple").opacity(0.1), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    .padding(.horizontal, 20)
 
                     // Emoji selector
                     EmojiSelector(selectedEmoji: $selectedEmoji)
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
 
                     // Color selector
                     ColorSelector(selectedColor: $selectedColor)
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
 
-                    Spacer()
+                    Spacer(minLength: 40)
 
-                    // Create button - liquid glass style
+                    // Create button
                     Button(action: {
                         listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { message in
                             self.alertMessage = message
@@ -81,19 +88,24 @@ struct CreateView: View {
                             }
                         }
                     }) {
-                        Text("Create List")
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .bold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            )
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Create List")
+                                .font(.system(size: 17, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                        )
+                        .shadow(color: Color("purple").opacity(isValidInput ? 0.3 : 0.1), radius: 12, x: 0, y: 6)
                     }
                     .disabled(!isValidInput)
-                    .opacity(isValidInput ? 1.0 : 0.5)
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .opacity(isValidInput ? 1.0 : 0.6)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
                     .alert(isPresented: $showAlert) {
                         Alert(title: Text(alertMessage))
                     }
@@ -139,14 +151,14 @@ struct EmojiSelector: View {
                     isExpanded.toggle()
                 }
             }) {
-                HStack {
+                HStack(spacing: 12) {
                     // Emoji preview or placeholder
                     if let emoji = selectedEmoji {
                         Text(emoji)
-                            .font(.system(size: 20))
+                            .font(.system(size: 22))
                     } else {
                         Text("😊")
-                            .font(.system(size: 20))
+                            .font(.system(size: 22))
                             .opacity(0.4)
                     }
 
@@ -173,9 +185,14 @@ struct EmojiSelector: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Color("purple"))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
             }
 
             // Emoji grid (expanded)
@@ -211,6 +228,11 @@ struct EmojiSelector: View {
                 }
                 .frame(maxHeight: 300)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .transition(.scale.combined(with: .opacity))
             }
         }
@@ -237,16 +259,16 @@ struct ColorSelector: View {
                     isExpanded.toggle()
                 }
             }) {
-                HStack {
+                HStack(spacing: 12) {
                     // Color preview or placeholder
                     if let colorName = selectedColor {
                         Circle()
                             .fill(Color(colorName))
-                            .frame(width: 24, height: 24)
+                            .frame(width: 26, height: 26)
                     } else {
                         Circle()
                             .stroke(Color.gray.opacity(0.3), lineWidth: 2)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 26, height: 26)
                     }
 
                     Text(selectedColor == nil ? "Select color (optional)" : "Change color")
@@ -272,9 +294,14 @@ struct ColorSelector: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Color("purple"))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
             }
 
             // Color options (expanded)
@@ -306,6 +333,11 @@ struct ColorSelector: View {
                 }
                 .padding(12)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .transition(.scale.combined(with: .opacity))
             }
         }
