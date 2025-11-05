@@ -91,17 +91,20 @@ struct LoginView: View {
             }
             .padding(.horizontal, 24)
 
-            // create account button
-            Button(action: {
-                withAnimation {
-                    self.currentShowingView = "signup"
+            // Forgot password button
+            HStack {
+                Spacer()
+                Button(action: {
+                    // TODO: Implement forgot password functionality
+                    print("Forgot password tapped")
+                }) {
+                    Text("Forgot password?")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 15, weight: .medium))
                 }
-            }) {
-                Text("New here? Sign up!")
-                    .foregroundColor(.black)
-                    .font(.system(size: 17, weight: .medium))
             }
-            .padding(.top, 16)
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
 
             Spacer()
 
@@ -136,11 +139,12 @@ struct LoginView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(
-                    Color("red"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                    Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
                 )
             }
             .modifier(GlassEffectIfAvailable())
             .padding(.horizontal, 24)
+            .padding(.top, 24)
             .disabled(loading)
             .alert(isPresented: $signInFail) {
                 Alert(
@@ -165,20 +169,27 @@ struct LoginView: View {
             .padding(.horizontal, 24)
             .padding(.top, 24)
 
-            // Apple Sign In Button
-            AppleSignInButton(
-                action: {
+            // Apple and Google Sign In Buttons (side by side)
+            HStack(spacing: 12) {
+                // Apple Sign In Button
+                Button(action: {
                     // TODO: Implement Apple Sign-In when Apple Developer account is available
                     print("Apple Sign-In tapped - Not yet implemented")
-                },
-                isLoading: false
-            )
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
+                }) {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            Color.black,
+                            in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                }
 
-            // Google Sign In Button
-            GoogleSignInButton(
-                action: {
+                // Google Sign In Button
+                Button(action: {
                     googleSignInManager.signInWithGoogle { result in
                         switch result {
                         case let .success(uid):
@@ -190,12 +201,53 @@ struct LoginView: View {
                             print("Google Sign-In Error: \(error.localizedDescription)")
                         }
                     }
-                },
-                isLoading: googleSignInManager.isLoading
-            )
+                }) {
+                    Image("google")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            Color.white,
+                            in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                }
+                .disabled(googleSignInManager.isLoading)
+            }
             .padding(.horizontal, 24)
-            .padding(.top, 12)
-            .padding(.bottom, 12)
+            .padding(.top, 16)
+
+            // Alternative Sign In label
+            Text("Alternative Sign In")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.gray.opacity(0.7))
+                .padding(.top, 8)
+
+            Spacer()
+
+            // Create account text link
+            HStack(spacing: 4) {
+                Text("Don't have an account?")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 15, weight: .regular))
+
+                Button(action: {
+                    withAnimation {
+                        self.currentShowingView = "signup"
+                    }
+                }) {
+                    Text("Create one!")
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .bold))
+                }
+            }
+            .padding(.bottom, 40)
         }
     }
 }

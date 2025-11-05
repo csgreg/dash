@@ -21,26 +21,25 @@ struct SignupView: View {
     @StateObject private var googleSignInManager = GoogleSignInManager()
 
     var body: some View {
-        ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
+        VStack(spacing: 0) {
+            Spacer()
+                .frame(height: 60)
 
-            VStack {
-                HStack {
-                    Text("Create an account!")
-                        .foregroundColor(.white)
-                        .font(.largeTitle)
-                        .bold()
-                    Spacer()
-                }
-                .padding()
-                .padding(.top)
+            // Title
+            VStack(spacing: 8) {
+                Text("Create an account!")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 40)
 
-                Spacer()
-
+            // Form Section
+            VStack(spacing: 16) {
                 // email input
                 HStack(spacing: 12) {
                     Image(systemName: "mail")
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 16, weight: .semibold))
 
                     TextField("Email", text: $email)
@@ -61,12 +60,11 @@ struct SignupView: View {
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
 
                 // password
                 HStack(spacing: 12) {
                     Image(systemName: "lock")
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 16, weight: .semibold))
 
                     SecureField("Password", text: $password)
@@ -86,12 +84,11 @@ struct SignupView: View {
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
 
                 // password confirm
                 HStack(spacing: 12) {
                     Image(systemName: "lock")
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 16, weight: .semibold))
 
                     SecureField("Verify Password", text: $verifyPassword)
@@ -111,138 +108,97 @@ struct SignupView: View {
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
+            }
+            .padding(.horizontal, 24)
 
-                // Divider with "OR"
-                HStack {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3))
-                        .frame(height: 1)
-                    Text("OR")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3))
-                        .frame(height: 1)
+            Spacer()
+
+            // create account button
+            Button(action: {
+                loading = true
+                if !email.isValidEmail() {
+                    signUpFail = true
+                    failTitle = "Please type a correct email address!"
+                    loading = false
+                    return
                 }
-                .padding(.horizontal)
-                .padding(.top, 24)
+                if !password.isValidPassword() {
+                    signUpFail = true
+                    failTitle = "Password must be at least 8 characters long!"
+                    loading = false
+                    return
+                }
+                if password != verifyPassword {
+                    signUpFail = true
+                    failTitle = "Passwords do not match. Please try again."
+                    loading = false
+                    return
+                }
 
-                // Apple Sign In Button
-                AppleSignInButton(
-                    action: {
-                        // TODO: Implement Apple Sign-In when Apple Developer account is available
-                        print("Apple Sign-In tapped - Not yet implemented")
-                    },
-                    isLoading: false
-                )
-                .padding(.horizontal)
-                .padding(.top, 16)
+                Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+                    if error != nil {
+                        signUpFail = true
+                        failTitle = "Please try again later or check your internet connection!"
+                        loading = false
+                        return
+                    }
 
-                // Google Sign In Button
-                GoogleSignInButton(
-                    action: {
-                        googleSignInManager.signInWithGoogle { result in
-                            switch result {
-                            case let .success(uid):
-                                withAnimation {
-                                    userID = uid
-                                }
-                            case let .failure(error):
-                                signUpFail = true
-                                failTitle = error.localizedDescription
-                            }
+                    if let authResult = authResult {
+                        withAnimation {
+                            userID = authResult.user.uid
                         }
-                    },
-                    isLoading: googleSignInManager.isLoading
+                    }
+                    loading = false
+                }
+            }) {
+                HStack(spacing: 8) {
+                    if loading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Image(systemName: "person.badge.plus.fill")
+                            .font(.system(size: 18, weight: .bold))
+                    }
+                    Text("Create Account")
+                        .font(.system(size: 17, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
                 )
-                .padding(.horizontal)
-                .padding(.top, 12)
+            }
+            .modifier(GlassEffectIfAvailable())
+            .padding(.horizontal, 24)
+            .disabled(loading)
+            .alert(isPresented: $signUpFail) {
+                Alert(
+                    title: Text("Failed to sign up"),
+                    message: Text(failTitle)
+                )
+            }
 
-                // sign in button
+            Spacer()
+                .frame(height: 24)
+
+            // Sign in text link
+            HStack(spacing: 4) {
+                Text("Already have an account?")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 15, weight: .regular))
+
                 Button(action: {
                     withAnimation {
                         self.currentShowingView = "login"
                     }
                 }) {
-                    Text("Have an account? Sign in!")
-                        .foregroundColor(.white)
-                        .font(.system(size: 17, weight: .medium))
+                    Text("Sign in!")
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .bold))
                 }
-                .padding(.top, 16)
-
-                Spacer()
-                Spacer()
-
-                // create account button
-                Button(action: {
-                    loading = true
-                    if !email.isValidEmail() {
-                        signUpFail = true
-                        failTitle = "Please type a correct email address!"
-                        loading = false
-                        return
-                    }
-                    if !password.isValidPassword() {
-                        signUpFail = true
-                        failTitle = "Password must be at least 8 characters long!"
-                        loading = false
-                        return
-                    }
-                    if password != verifyPassword {
-                        signUpFail = true
-                        failTitle = "Passwords do not match. Please try again."
-                        loading = false
-                        return
-                    }
-
-                    Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-                        if error != nil {
-                            signUpFail = true
-                            failTitle = "Please try again later or check your internet connection!"
-                            loading = false
-                            return
-                        }
-
-                        if let authResult = authResult {
-                            withAnimation {
-                                userID = authResult.user.uid
-                            }
-                        }
-                        loading = false
-                    }
-                }) {
-                    HStack(spacing: 8) {
-                        if loading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Image(systemName: "person.badge.plus.fill")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        Text("Create Account")
-                            .font(.system(size: 17, weight: .bold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    )
-                    .shadow(color: Color("purple").opacity(0.3), radius: 12, x: 0, y: 6)
-                }
-                .disabled(loading)
-                .modifier(GlassEffectIfAvailable())
-                .padding(.horizontal)
-                .alert(isPresented: $signUpFail) {
-                    Alert(
-                        title: Text("Failed to sign up"),
-                        message: Text(failTitle)
-                    )
-                }
-                .padding(.bottom)
             }
+            .padding(.bottom, 40)
         }
     }
 }
