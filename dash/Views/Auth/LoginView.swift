@@ -6,7 +6,6 @@
 //
 
 import FirebaseAuth
-import RiveRuntime
 import SwiftUI
 
 struct LoginView: View {
@@ -19,24 +18,31 @@ struct LoginView: View {
     @State private var loading: Bool = false
 
     var body: some View {
-        ZStack {
-            RiveViewModel(fileName: "shapes").view()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-                .blur(radius: 40)
+        VStack(spacing: 0) {
+            Spacer()
+                .frame(height: 60)
 
-            VStack {
-                HStack {
-                    Text("Welcome back!")
-                        .font(.largeTitle)
-                        .bold()
-                    Spacer()
-                }
-                .padding()
-                .padding(.top)
+            // App Logo
+            Image("logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
 
-                Spacer()
+            // Title and Subtitle
+            VStack(spacing: 8) {
+                Text("Welcome back!")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.black)
 
+                Text("Sign in to continue")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.gray)
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 40)
+
+            // Form Section
+            VStack(spacing: 16) {
                 // email input
                 HStack(spacing: 12) {
                     Image(systemName: "mail")
@@ -61,7 +67,6 @@ struct LoginView: View {
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
 
                 // password
                 HStack(spacing: 12) {
@@ -86,68 +91,67 @@ struct LoginView: View {
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                .padding(.horizontal)
-
-                // create account button
-                Button(action: {
-                    withAnimation {
-                        self.currentShowingView = "signup"
-                    }
-                }) {
-                    Text("New here? Sign up!")
-                        .foregroundColor(.black)
-                        .font(.system(size: 15, weight: .medium))
-                }
-                .padding(.top, 8)
-
-                Spacer()
-                Spacer()
-
-                // sign in button
-                Button(action: {
-                    loading = true
-                    Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
-                        if error != nil {
-                            signInFail = true
-                        }
-
-                        if let authResult = authResult {
-                            withAnimation {
-                                userID = authResult.user.uid
-                            }
-                        }
-                        loading = false
-                    }
-                }) {
-                    HStack(spacing: 1) {
-                        if loading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        Text("Sign In")
-                            .font(.system(size: 17, weight: .bold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        .black, in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    )
-                }
-                .modifier(GlassEffectIfAvailable())
-                .padding(.horizontal)
-                .disabled(loading)
-                .alert(isPresented: $signInFail) {
-                    Alert(
-                        title: Text("Failed to log in"),
-                        message: Text("Oops! Incorrect email or password.")
-                    )
-                }
-                .padding(.bottom)
             }
+            .padding(.horizontal, 24)
+
+            // create account button
+            Button(action: {
+                withAnimation {
+                    self.currentShowingView = "signup"
+                }
+            }) {
+                Text("New here? Sign up!")
+                    .foregroundColor(.black)
+                    .font(.system(size: 17, weight: .medium))
+            }
+            .padding(.top, 16)
+
+            Spacer()
+
+            // sign in button
+            Button(action: {
+                loading = true
+                Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
+                    if error != nil {
+                        signInFail = true
+                    }
+
+                    if let authResult = authResult {
+                        withAnimation {
+                            userID = authResult.user.uid
+                        }
+                    }
+                    loading = false
+                }
+            }) {
+                HStack(spacing: 8) {
+                    if loading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.system(size: 18, weight: .bold))
+                    }
+                    Text("Sign In")
+                        .font(.system(size: 17, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    Color("red"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                )
+            }
+            .modifier(GlassEffectIfAvailable())
+            .padding(.horizontal, 24)
+            .disabled(loading)
+            .alert(isPresented: $signInFail) {
+                Alert(
+                    title: Text("Failed to log in"),
+                    message: Text("Oops! Incorrect email or password.")
+                )
+            }
+            .padding(.bottom, 40)
         }
     }
 }

@@ -15,7 +15,7 @@ struct MainView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView().preferredColorScheme(.light)
+            HomeView(selectedTab: $selectedTab).preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "house")
                     Text("Lists")

@@ -14,11 +14,16 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var listManager: ListManager
     @State private var firstName: String = ""
+    @Binding var selectedTab: Int
 
     var body: some View {
         NavigationView {
-            ZStack {
-                ScrollView {
+            ScrollView {
+                if listManager.lists.isEmpty {
+                    EmptyStateView(onCreateList: {
+                        selectedTab = 1
+                    })
+                } else {
                     ForEach(listManager.lists) { list in
                         NavigationLink {
                             ListDetailsView(listId: list.id)
@@ -66,7 +71,7 @@ struct HomeView: View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView()
+        HomeView(selectedTab: .constant(0))
             .environmentObject(ListManager(userId: "asd"))
     }
 }

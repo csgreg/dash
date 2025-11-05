@@ -37,81 +37,80 @@ struct SignupView: View {
                 Spacer()
 
                 // email input
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "mail")
-                    TextField("", text: $email, prompt: Text("Email").foregroundColor(.white.opacity(0.6)))
-                        .autocapitalization(.none)
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .semibold))
 
-                    Spacer()
+                    TextField("Email", text: $email)
+                        .autocapitalization(.none)
+                        .font(.system(size: 16, weight: .medium))
 
                     if !email.isEmpty {
-                        Image(systemName: email.isValidEmail() ? "checkmark" : "xmark")
-                            .fontWeight(.bold)
+                        Image(systemName: email.isValidEmail() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(email.isValidEmail() ? .green : .red)
                     }
                 }
-                .foregroundColor(.white)
-                .padding()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
+                .modifier(GlassEffectIfAvailable())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(lineWidth: 2)
-                        .foregroundColor(.white)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
-                .padding(.bottom)
 
                 // password
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "lock")
-                    SecureField(
-                        "", text: $password, prompt: Text("Password").foregroundColor(.white.opacity(0.6))
-                    )
-                    .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .semibold))
 
-                    Spacer()
+                    SecureField("Password", text: $password)
+                        .font(.system(size: 16, weight: .medium))
 
                     if !password.isEmpty {
-                        Image(systemName: password.isValidPassword() ? "checkmark" : "xmark")
-                            .fontWeight(.bold)
+                        Image(systemName: password.isValidPassword() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(password.isValidPassword() ? .green : .red)
                     }
                 }
-                .foregroundColor(.white)
-                .padding()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
+                .modifier(GlassEffectIfAvailable())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(lineWidth: 2)
-                        .foregroundColor(.white)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
-                .padding(.bottom)
 
                 // password confirm
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "lock")
-                    SecureField(
-                        "", text: $verifyPassword,
-                        prompt: Text("Verify Password").foregroundColor(.white.opacity(0.6))
-                    )
-                    .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .semibold))
 
-                    Spacer()
+                    SecureField("Verify Password", text: $verifyPassword)
+                        .font(.system(size: 16, weight: .medium))
 
                     if !verifyPassword.isEmpty {
-                        Image(systemName: verifyPassword.isValidPassword() ? "checkmark" : "xmark")
-                            .fontWeight(.bold)
+                        Image(systemName: verifyPassword.isValidPassword() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(verifyPassword.isValidPassword() ? .green : .red)
                     }
                 }
-                .foregroundColor(.white)
-                .padding()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
+                .modifier(GlassEffectIfAvailable())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(lineWidth: 2)
-                        .foregroundColor(.white)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
-                .padding(.bottom)
 
                 // sign in button
                 Button(action: {
@@ -120,13 +119,15 @@ struct SignupView: View {
                     }
                 }) {
                     Text("Have an account? Sign in!")
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.white)
+                        .font(.system(size: 17, weight: .medium))
                 }
+                .padding(.top, 8)
 
                 Spacer()
                 Spacer()
 
-                // sign in button
+                // create account button
                 Button(action: {
                     loading = true
                     if !email.isValidEmail() {
@@ -164,19 +165,28 @@ struct SignupView: View {
                         loading = false
                     }
                 }) {
-                    Text("Create Account")
-                        .foregroundColor(.black)
-                        .font(.title3)
-                        .bold()
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(.white)
-                        )
-                        .padding(.horizontal)
+                    HStack(spacing: 8) {
+                        if loading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "person.badge.plus.fill")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        Text("Create Account")
+                            .font(.system(size: 17, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                    )
+                    .shadow(color: Color("purple").opacity(0.3), radius: 12, x: 0, y: 6)
                 }
                 .disabled(loading)
+                .modifier(GlassEffectIfAvailable())
+                .padding(.horizontal)
                 .alert(isPresented: $signUpFail) {
                     Alert(
                         title: Text("Failed to sign up"),
