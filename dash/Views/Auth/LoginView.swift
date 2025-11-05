@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var signInFail: Bool = false
     @State private var loading: Bool = false
+    @StateObject private var googleSignInManager = GoogleSignInManager()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -151,6 +152,42 @@ struct LoginView: View {
                     message: Text("Oops! Incorrect email or password.")
                 )
             }
+
+            // Divider with "OR"
+            HStack {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 1)
+                Text("OR")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 12)
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 1)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+
+            // Google Sign In Button
+            GoogleSignInButton(
+                action: {
+                    googleSignInManager.signInWithGoogle { result in
+                        switch result {
+                        case let .success(uid):
+                            withAnimation {
+                                userID = uid
+                            }
+                        case let .failure(error):
+                            signInFail = true
+                            print("Google Sign-In Error: \(error.localizedDescription)")
+                        }
+                    }
+                },
+                isLoading: googleSignInManager.isLoading
+            )
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
             .padding(.bottom, 40)
         }
     }

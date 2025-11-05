@@ -18,6 +18,7 @@ struct SignupView: View {
     @State private var signUpFail = false
     @State private var failTitle = ""
     @State private var loading: Bool = false
+    @StateObject private var googleSignInManager = GoogleSignInManager()
 
     var body: some View {
         ZStack {
@@ -112,6 +113,42 @@ struct SignupView: View {
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
 
+                // Divider with "OR"
+                HStack {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(height: 1)
+                    Text("OR")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(height: 1)
+                }
+                .padding(.horizontal)
+                .padding(.top, 24)
+
+                // Google Sign In Button
+                GoogleSignInButton(
+                    action: {
+                        googleSignInManager.signInWithGoogle { result in
+                            switch result {
+                            case let .success(uid):
+                                withAnimation {
+                                    userID = uid
+                                }
+                            case let .failure(error):
+                                signUpFail = true
+                                failTitle = error.localizedDescription
+                            }
+                        }
+                    },
+                    isLoading: googleSignInManager.isLoading
+                )
+                .padding(.horizontal)
+                .padding(.top, 16)
+
                 // sign in button
                 Button(action: {
                     withAnimation {
@@ -122,7 +159,7 @@ struct SignupView: View {
                         .foregroundColor(.white)
                         .font(.system(size: 17, weight: .medium))
                 }
-                .padding(.top, 8)
+                .padding(.top, 16)
 
                 Spacer()
                 Spacer()
