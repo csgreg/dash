@@ -1,5 +1,5 @@
 //
-//  GoogleSignInButton.swift
+//  AppleSignInButton.swift
 //  dash
 //
 //  Created by Gergo Csizmadia on 2025. 11. 05.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct GoogleSignInButton: View {
+struct AppleSignInButton: View {
     let action: () -> Void
     let isLoading: Bool
 
@@ -16,29 +16,28 @@ struct GoogleSignInButton: View {
             HStack(spacing: 12) {
                 if isLoading {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Image("google")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
                 }
 
-                Text("Continue with Google")
+                Text("Continue with Apple")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
-                Color.white,
+                Color.black,
                 in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: .infinity, style: .continuous)
                     .stroke(Color.black.opacity(0.1), lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
         }
         .disabled(isLoading)
     }

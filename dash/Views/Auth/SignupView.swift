@@ -129,6 +129,17 @@ struct SignupView: View {
                 .padding(.horizontal)
                 .padding(.top, 24)
 
+                // Apple Sign In Button
+                AppleSignInButton(
+                    action: {
+                        // TODO: Implement Apple Sign-In when Apple Developer account is available
+                        print("Apple Sign-In tapped - Not yet implemented")
+                    },
+                    isLoading: false
+                )
+                .padding(.horizontal)
+                .padding(.top, 16)
+
                 // Google Sign In Button
                 GoogleSignInButton(
                     action: {
@@ -147,7 +158,7 @@ struct SignupView: View {
                     isLoading: googleSignInManager.isLoading
                 )
                 .padding(.horizontal)
-                .padding(.top, 16)
+                .padding(.top, 12)
 
                 // sign in button
                 Button(action: {

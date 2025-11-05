@@ -34,10 +34,6 @@ struct LoginView: View {
                 Text("Welcome back!")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.black)
-
-                Text("Sign in to continue")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.gray)
             }
             .padding(.top, 24)
             .padding(.bottom, 40)
@@ -169,6 +165,17 @@ struct LoginView: View {
             .padding(.horizontal, 24)
             .padding(.top, 24)
 
+            // Apple Sign In Button
+            AppleSignInButton(
+                action: {
+                    // TODO: Implement Apple Sign-In when Apple Developer account is available
+                    print("Apple Sign-In tapped - Not yet implemented")
+                },
+                isLoading: false
+            )
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+
             // Google Sign In Button
             GoogleSignInButton(
                 action: {
@@ -187,8 +194,8 @@ struct LoginView: View {
                 isLoading: googleSignInManager.isLoading
             )
             .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 40)
+            .padding(.top, 12)
+            .padding(.bottom, 12)
         }
     }
 }
