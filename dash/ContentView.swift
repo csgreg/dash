@@ -11,17 +11,17 @@ import SwiftUI
 struct ContentView: View {
     var userId: String
 
-    var listManager: ListManager
     @ObservedObject var deepLinkHandler: DeepLinkHandler
 
     @State private var showJoinAlert = false
     @State private var joinAlertMessage = ""
     @State private var pendingListId: String?
+    @State private var listManager: ListManager
 
     init(userId: String, deepLinkHandler: DeepLinkHandler) {
         self.userId = userId
         self.deepLinkHandler = deepLinkHandler
-        listManager = ListManager(userId: self.userId)
+        _listManager = State(initialValue: ListManager(userId: userId))
     }
 
     var body: some View {
@@ -45,6 +45,12 @@ struct ContentView: View {
                     } message: {
                         Text(joinAlertMessage)
                     }
+            }
+        }
+        .onChange(of: userId) { newUserId in
+            // Recreate ListManager when userId changes
+            if !newUserId.isEmpty {
+                listManager = ListManager(userId: newUserId)
             }
         }
         .onChange(of: deepLinkHandler.activeDeepLink) { newValue in
