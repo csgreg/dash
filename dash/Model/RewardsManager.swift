@@ -38,35 +38,26 @@ class RewardsManager: ObservableObject {
             description: "Create 100 items",
             icon: "star.fill",
             requiredItems: 100,
-            unlockedColor: "blue",
-            colorDisplayName: "Blue"
+            unlockedColor: "red",
+            colorDisplayName: "Red"
         ),
         Achievement(
             id: "productivity-pro",
             title: "Productivity Pro",
             description: "Create 500 items",
             icon: "bolt.fill",
-            requiredItems: 500,
-            unlockedColor: "green",
-            colorDisplayName: "Green"
+            requiredItems: 200,
+            unlockedColor: "blue",
+            colorDisplayName: "Blue"
         ),
         Achievement(
             id: "legendary",
             title: "Legendary",
             description: "Create 1,000 items",
             icon: "crown.fill",
-            requiredItems: 1000,
-            unlockedColor: "orange",
-            colorDisplayName: "Orange"
-        ),
-        Achievement(
-            id: "ultimate",
-            title: "Ultimate Champion",
-            description: "Create 2,500+ items",
-            icon: "trophy.fill",
-            requiredItems: 2500,
-            unlockedColor: "pink",
-            colorDisplayName: "Pink"
+            requiredItems: 500,
+            unlockedColor: "yellow",
+            colorDisplayName: "Yellow"
         ),
     ]
 
