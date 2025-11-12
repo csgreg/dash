@@ -12,6 +12,7 @@ public struct GlassEffectIfAvailable: ViewModifier {
         if #available(iOS 26.0, *) {
             content.glassEffect()
         } else {
+            // iOS 17 and below fallback
             content.background(
                 .ultraThinMaterial, in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
             )

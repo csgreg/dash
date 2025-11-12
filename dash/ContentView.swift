@@ -12,6 +12,7 @@ struct ContentView: View {
     var userId: String
 
     @ObservedObject var deepLinkHandler: DeepLinkHandler
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     @State private var showJoinAlert = false
     @State private var joinAlertMessage = ""
@@ -35,6 +36,10 @@ struct ContentView: View {
                     } message: {
                         Text("Please log in to join this list.")
                     }
+            } else if !hasCompletedOnboarding {
+                // Show onboarding for new users
+                OnboardingView()
+                    .transition(.opacity)
             } else {
                 MainView()
                     .environmentObject(listManager)
