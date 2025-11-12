@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var signInFail: Bool = false
     @State private var loading: Bool = false
+    @State private var showForgotPassword: Bool = false
     @StateObject private var googleSignInManager = GoogleSignInManager()
 
     var body: some View {
@@ -95,8 +96,7 @@ struct LoginView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    // TODO: Implement forgot password functionality
-                    print("Forgot password tapped")
+                    showForgotPassword = true
                 }) {
                     Text("Forgot password?")
                         .foregroundColor(.gray)
@@ -249,5 +249,13 @@ struct LoginView: View {
             }
             .padding(.bottom, 40)
         }
+        .overlay(
+            Group {
+                if showForgotPassword {
+                    ForgotPasswordView(isPresented: $showForgotPassword)
+                        .transition(.opacity)
+                }
+            }
+        )
     }
 }

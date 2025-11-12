@@ -22,7 +22,7 @@ struct MainView: View {
                 }
                 .tag(0)
 
-            CreateView().preferredColorScheme(.light)
+            CreateView(selectedTab: $selectedTab).preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "plus.square.fill.on.square.fill")
                     Text("Create")

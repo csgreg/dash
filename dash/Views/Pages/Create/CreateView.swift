@@ -10,6 +10,8 @@ import FirebaseFirestore
 import SwiftUI
 
 struct CreateView: View {
+    @Binding var selectedTab: Int
+
     @State var listName: String = ""
     @State var selectedEmoji: String?
     @State var selectedColor: String? = "purple" // Auto-select first color
@@ -81,11 +83,15 @@ struct CreateView: View {
                         listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { message in
                             self.alertMessage = message
                             self.showAlert = true
-                            // Reset form on success
+                            // Reset form and navigate to home on success
                             if message.contains("successfully") {
                                 self.listName = ""
                                 self.selectedEmoji = nil
                                 self.selectedColor = nil
+                                // Navigate to home page
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    selectedTab = 0
+                                }
                             }
                         }
                     }) {
@@ -236,7 +242,7 @@ struct ColorSelectorButton: View {
 
 struct CreateView_Previews: PreviewProvider {
     static var previews: some View {
-        CreateView()
+        CreateView(selectedTab: .constant(1))
             .environmentObject(ListManager(userId: "asd"))
     }
 }
