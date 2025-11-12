@@ -15,8 +15,9 @@ struct CreateView: View {
     @State var listName: String = ""
     @State var selectedEmoji: String?
     @State var selectedColor: String? = "purple" // Auto-select first color
-    @State var showAlert: Bool = false
-    @State var alertMessage: String = ""
+    @State var showSuccessAlert: Bool = false
+    @State var showErrorAlert: Bool = false
+    @State var errorMessage: String = ""
     @State var showEmojiModal: Bool = false
     @State var showColorModal: Bool = false
 
@@ -80,11 +81,10 @@ struct CreateView: View {
 
                     // Create button
                     Button(action: {
-                        listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { message in
-                            self.alertMessage = message
-                            self.showAlert = true
-                            // Reset form and navigate to home on success
-                            if message.contains("successfully") {
+                        listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { success, message in
+                            if success {
+                                self.showSuccessAlert = true
+                                // Reset form and navigate to home on success
                                 self.listName = ""
                                 self.selectedEmoji = nil
                                 self.selectedColor = nil
@@ -92,6 +92,9 @@ struct CreateView: View {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     selectedTab = 0
                                 }
+                            } else {
+                                self.errorMessage = message
+                                self.showErrorAlert = true
                             }
                         }
                     }) {
@@ -113,9 +116,6 @@ struct CreateView: View {
                     .opacity(isValidInput ? 1.0 : 0.6)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 32)
-                    .alert(isPresented: $showAlert) {
-                        Alert(title: Text(alertMessage))
-                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
@@ -147,6 +147,16 @@ struct CreateView: View {
                     }
                 }
             )
+            .alert("Success", isPresented: $showSuccessAlert) {
+                Button("OK") {}
+            } message: {
+                Text("Your list has been created successfully!")
+            }
+            .alert("Error", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
 }

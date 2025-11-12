@@ -15,4 +15,5 @@ struct Listy: Identifiable {
     var color: String?
     var items: [Item]
     var users: [String]
+    var creatorId: String?
 }

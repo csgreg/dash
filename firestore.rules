@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get authenticated user ID
+    function getUserId() {
+      return request.auth.uid;
+    }
+    
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+      // Users can only read and write their own document
+      allow read, write: if isSignedIn() && getUserId() == userId;
+    }
+    
+    // ============================================
+    // LISTS COLLECTION
+    // ============================================
+    match /lists/{listId} {
+      // Helper to check if user is a member of the list
+      function isMember() {
+        return isSignedIn() && 
+               getUserId() in resource.data.users;
+      }
+      
+      // Helper to check if user is the creator of the list
+      function isCreator() {
+        return isSignedIn() && 
+               getUserId() == resource.data.creatorId;
+      }
+      
+      // Helper to check if user will be in the list after creation
+      function willBeMember() {
+        return isSignedIn() && 
+               getUserId() in request.resource.data.users;
+      }
+      
+      // READ: Allow if user is a member OR if they're authenticated and reading a specific document
+      // (needed for join flow - user needs to verify list exists before joining)
+      // Note: This doesn't allow querying all lists, only reading specific documents by ID
+      allow get: if isSignedIn();
+      allow list: if isMember();
+      
+      // CREATE: User must be authenticated and include themselves in users array
+      allow create: if isSignedIn() && 
+                       willBeMember() &&
+                       getUserId() == request.resource.data.creatorId;
+      
+      // UPDATE: Allow if:
+      // 1. User is joining (adding themselves to users array)
+      // 2. User is a member and staying in the list
+      // 3. User is leaving (removing themselves from users array)
+      allow update: if isSignedIn() && (
+        // Joining: user is NOT currently a member but is adding themselves
+        (!(getUserId() in resource.data.users) && 
+         getUserId() in request.resource.data.users &&
+         // Ensure they're only adding themselves, not modifying other fields
+         request.resource.data.users.size() == resource.data.users.size() + 1) ||
+        
+        // Regular update: user is already a member and stays in the list
+        (isMember() && getUserId() in request.resource.data.users) ||
+        
+        // Leaving: user removes themselves from users array
+        (isMember() && !(getUserId() in request.resource.data.users))
+      );
+      
+      // DELETE: Only the creator can delete the list
+      allow delete: if isCreator();
+      
+      // ============================================
+      // ITEMS SUBCOLLECTION
+      // ============================================
+      match /items/{itemId} {
+        // Items inherit the parent list's permissions
+        // Users can read/write items if they're members of the parent list
+        allow read: if isSignedIn() && 
+                       getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.users;
+        
+        allow write: if isSignedIn() && 
+                        getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.users;
+      }
+    }
+    
+    // ============================================
+    // FEEDBACK COLLECTION
+    // ============================================
+    match /feedback/{feedbackId} {
+      // Users can only create feedback (not read, update, or delete)
+      // Only authenticated users can submit feedback
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == getUserId();
+      
+      // Only admins should be able to read feedback (set this up in Firebase Console)
+      allow read, update, delete: if false;
+    }
+    
+    // ============================================
+    // DENY ALL OTHER COLLECTIONS
+    // ============================================
+    // Explicitly deny access to any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

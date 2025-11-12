@@ -11,6 +11,7 @@ struct ListDetailsView: View {
     @State private var newItem: String = ""
     @State private var showClearConfirmation = false
     @State private var showDeleteConfirmation = false
+    @State private var showLeaveConfirmation = false
 
     let listId: String
 
@@ -19,6 +20,11 @@ struct ListDetailsView: View {
     // Computed property to get the current list from ListManager
     private var list: Listy? {
         listManager.lists.first(where: { $0.id == listId })
+    }
+
+    // Check if current user is the creator of the list
+    private var isCreator: Bool {
+        list?.creatorId == listManager.userId
     }
 
     private var isValidInput: Bool {
@@ -187,15 +193,27 @@ struct ListDetailsView: View {
                         )
                         .disabled((list?.items.isEmpty ?? true))
 
-                        Button(
-                            action: {
-                                showDeleteConfirmation = true
-                            },
-                            label: {
-                                Image(systemName: "trash")
-                                Text("Delete List")
-                            }
-                        )
+                        if isCreator {
+                            Button(
+                                action: {
+                                    showDeleteConfirmation = true
+                                },
+                                label: {
+                                    Image(systemName: "trash")
+                                    Text("Delete List")
+                                }
+                            )
+                        } else {
+                            Button(
+                                action: {
+                                    showLeaveConfirmation = true
+                                },
+                                label: {
+                                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    Text("Leave List")
+                                }
+                            )
+                        }
                     },
                     label: {
                         Image(systemName: "gearshape.fill")
@@ -226,6 +244,18 @@ struct ListDetailsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will permanently delete the list '\(list?.name ?? "Untitled")' and all its items. This action cannot be undone.")
+        }
+        .confirmationDialog(
+            "Leave List",
+            isPresented: $showLeaveConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Leave List", role: .destructive) {
+                listManager.leaveList(listId: listId)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to leave '\(list?.name ?? "Untitled")'? You'll need to be re-invited to join again.")
         }
     }
 }

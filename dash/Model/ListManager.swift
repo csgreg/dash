@@ -68,10 +68,12 @@ class ListManager: ObservableObject {
                             let emoji = data["emoji"] as? String
                             let color = data["color"] as? String
                             let users = data["users"] as? [String] ?? []
+                            let creatorId = data["creatorId"] as? String
                             self.lists[index].name = name
                             self.lists[index].emoji = emoji
                             self.lists[index].color = color
                             self.lists[index].users = users
+                            self.lists[index].creatorId = creatorId
                             print("Modified list: \(name)")
                         }
 
@@ -93,8 +95,9 @@ class ListManager: ObservableObject {
         let emoji = data["emoji"] as? String
         let color = data["color"] as? String
         let users = data["users"] as? [String] ?? []
+        let creatorId = data["creatorId"] as? String
         // Items will be populated by the items subcollection listener
-        return Listy(id: documentID, name: name, emoji: emoji, color: color, items: [], users: users)
+        return Listy(id: documentID, name: name, emoji: emoji, color: color, items: [], users: users, creatorId: creatorId)
     }
 
     /// Sets up a listener for items in a specific list
@@ -156,11 +159,12 @@ class ListManager: ObservableObject {
         return Item(id: itemId, text: text, done: done, order: order)
     }
 
-    func createList(listName: String, emoji: String? = nil, color: String? = nil, completion: @escaping (String) -> Void) {
+    func createList(listName: String, emoji: String? = nil, color: String? = nil, completion: @escaping (Bool, String) -> Void) {
         let uid = UUID().uuidString
         var data: [String: Any] = [
             "name": listName,
             "users": [userId],
+            "creatorId": userId,
         ]
         if let emoji = emoji {
             data["emoji"] = emoji
@@ -171,11 +175,11 @@ class ListManager: ObservableObject {
         firestore.collection("lists").document(uid).setData(data) { err in
             if let err = err {
                 print("Error writing document: \(err)")
-                completion("Failed to create new list, please check your internet connection or try again!")
+                completion(false, "Failed to create list. Please check your internet connection and try again.")
                 return
             } else {
                 print("Document successfully written!")
-                completion("List successfully created!")
+                completion(true, "")
             }
         }
     }
@@ -261,6 +265,31 @@ class ListManager: ObservableObject {
                 print("Error removing document: \(err)")
             } else {
                 print("Document successfully removed!")
+            }
+        }
+    }
+
+    func leaveList(listId: String) {
+        let docRef = firestore.collection("lists").document(listId)
+        docRef.getDocument { document, _ in
+            if let document = document, document.exists {
+                let data = document.data()
+                if let data = data {
+                    var users = data["users"] as? [String] ?? []
+                    users.removeAll { $0 == self.userId }
+
+                    docRef.updateData([
+                        "users": users,
+                    ]) { err in
+                        if let err = err {
+                            print("Error leaving list: \(err)")
+                        } else {
+                            print("Successfully left the list!")
+                        }
+                    }
+                }
+            } else {
+                print("List not found")
             }
         }
     }
