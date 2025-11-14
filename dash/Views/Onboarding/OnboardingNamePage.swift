@@ -16,25 +16,18 @@ struct OnboardingNamePage: View {
     @FocusState private var isTextFieldFocused: Bool
 
     private var isValidName: Bool {
-        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            firstName.count >= 2
+        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && firstName.count >= 2
     }
 
     var body: some View {
         ZStack {
-            VStack(spacing: 32) {
-                Spacer()
-
+            VStack {
                 // Greeting icon
                 ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 150, height: 150)
-                        .blur(radius: 20)
-
                     Text("👋")
                         .font(.system(size: 70))
                         .scaleEffect(scale)
+                        .padding(.top, 54)
                 }
                 .opacity(opacity)
 

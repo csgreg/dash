@@ -74,6 +74,7 @@ struct OnboardingView: View {
                             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: currentPage)
                     }
                 }
+                .padding(.top, 12)
                 .padding(.bottom, 20)
 
                 // Next/Continue button

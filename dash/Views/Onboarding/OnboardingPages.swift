@@ -14,9 +14,7 @@ struct OnboardingPage1: View {
     @State private var opacity: Double = 0
 
     var body: some View {
-        VStack(spacing: 32) {
-            Spacer()
-
+        VStack {
             // App logo with animation
             Image("logo")
                 .resizable()
@@ -63,13 +61,11 @@ struct OnboardingPage1: View {
                 FeatureHighlight(
                     icon: "checkmark.circle.fill",
                     title: "Stay Synced",
-                    description: "Real-time updates everywhere"
+                    description: "Real-time updates across"
                 )
                 .opacity(opacity)
             }
             .padding(.horizontal, 32)
-
-            Spacer()
         }
         .onAppear {
             withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
@@ -87,16 +83,13 @@ struct OnboardingPage2: View {
     @State private var opacity: Double = 0
 
     var body: some View {
-        VStack(spacing: 40) {
-            Spacer()
-
+        VStack {
             // Illustration
             ZStack {
                 // Background circles
                 Circle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(width: 150, height: 150)
-                    .blur(radius: 20)
+                    .fill(Color.white.opacity(0))
+                    .frame(width: 120, height: 120)
 
                 // Main emoji
                 Text("🤝")
@@ -112,14 +105,16 @@ struct OnboardingPage2: View {
                     .multilineTextAlignment(.center)
                     .opacity(opacity)
 
-                Text("Share lists with anyone using a simple invite link. Everyone stays in sync instantly!")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(6)
-                    .padding(.horizontal, 32)
-                    .opacity(opacity)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Share lists with anyone using a simple invite link. Everyone stays in sync instantly!"
+                )
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.white.opacity(0.9))
+                .multilineTextAlignment(.center)
+                .lineSpacing(6)
+                .padding(.horizontal, 32)
+                .opacity(opacity)
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer()
@@ -155,8 +150,6 @@ struct OnboardingPage2: View {
             )
             .padding(.horizontal, 32)
             .opacity(opacity)
-
-            Spacer()
         }
         .onAppear {
             withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.1)) {
@@ -174,15 +167,13 @@ struct OnboardingPage3: View {
     @State private var opacity: Double = 0
 
     var body: some View {
-        VStack(spacing: 40) {
-            Spacer()
-
+        VStack {
             // Trophy illustration
             ZStack {
                 // Background circles
                 Circle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(width: 150, height: 150)
+                    .fill(Color.white.opacity(0))
+                    .frame(width: 120, height: 120)
                     .blur(radius: 20)
 
                 Text("🏆")
@@ -244,8 +235,6 @@ struct OnboardingPage3: View {
             )
             .padding(.horizontal, 32)
             .opacity(opacity)
-
-            Spacer()
         }
         .onAppear {
             withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.1)) {
