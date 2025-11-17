@@ -12,6 +12,8 @@ struct ListDetailsView: View {
     @State private var showClearConfirmation = false
     @State private var showDeleteConfirmation = false
     @State private var showLeaveConfirmation = false
+    @AppStorage("hasSeenListDetailsOnboarding") private var hasSeenListDetailsOnboarding: Bool = false
+    @State private var showListDetailsOnboarding: Bool = false
 
     let listId: String
 
@@ -36,30 +38,98 @@ struct ListDetailsView: View {
 
     var body: some View {
         ZStack {
-            List {
-                ForEach(list?.items ?? []) { item in
-                    ItemView(item: item, listId: listId)
+            // Main content
+            mainContent
+                .zIndex(0)
+
+            // Onboarding overlay
+            if showListDetailsOnboarding {
+                ListDetailsOnboarding {
+                    showListDetailsOnboarding = false
                 }
-                .onMove { from, moveTo in
-                    guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
-                        return
+                .transition(.opacity)
+                .zIndex(999)
+            }
+        }
+        .navigationBarBackButtonHidden(showListDetailsOnboarding)
+        .toolbar(showListDetailsOnboarding ? .hidden : .visible, for: .tabBar)
+        .onAppear {
+            if !hasSeenListDetailsOnboarding {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        showListDetailsOnboarding = true
                     }
-
-                    // Update the actual list in listManager for immediate UI feedback
-                    listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
-
-                    // Batch update all item orders in Firestore with a single request
-                    let itemsToUpdate = listManager.lists[listIndex].items.enumerated().map { index, item in
-                        (itemId: item.id, order: index)
-                    }
-                    listManager.updateMultipleItemOrders(listId: listId, items: itemsToUpdate)
                 }
             }
-            .preferredColorScheme(.light)
-            .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 80)
+        }
+    }
+
+    private var mainContent: some View {
+        ZStack {
+            if list?.items.isEmpty ?? true {
+                // Empty state
+                VStack(spacing: 0) {
+                    Spacer()
+
+                    VStack(spacing: 20) {
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(Color("purple").opacity(0.1))
+                                .frame(width: 100, height: 100)
+
+                            Text("😊")
+                                .font(.system(size: 50))
+                        }
+
+                        // Text content
+                        VStack(spacing: 8) {
+                            Text("Your list is empty")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.primary)
+
+                            Text("Add items using the field below")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                    Spacer()
+                }
+            } else {
+                List {
+                    ForEach(list?.items ?? []) { item in
+                        ItemView(item: item, listId: listId)
+                    }
+                    .onMove { from, moveTo in
+                        guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
+                            return
+                        }
+
+                        // Update the actual list in listManager for immediate UI feedback
+                        listManager.lists[listIndex].items.move(fromOffsets: from, toOffset: moveTo)
+
+                        // Batch update all item orders in Firestore with a single request
+                        let itemsToUpdate = listManager.lists[listIndex].items.enumerated().map { index, item in
+                            (itemId: item.id, order: index)
+                        }
+                        listManager.updateMultipleItemOrders(listId: listId, items: itemsToUpdate)
+                    }
+                }
+                .preferredColorScheme(.light)
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 80)
+                }
             }
+
+            List {}
+                .preferredColorScheme(.light)
+                .navigationBarTitleDisplayMode(.inline)
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 80)
+                }
+                .opacity(0)
 
             // Bottom section with liquid glass background - overlaid on top
             VStack {
@@ -91,7 +161,9 @@ struct ListDetailsView: View {
                         Button(
                             action: {
                                 guard let currentList = list else { return }
-                                let item = Item(id: UUID().uuidString, text: newItem, order: currentList.items.count)
+                                let item = Item(
+                                    id: UUID().uuidString, text: newItem, order: currentList.items.count
+                                )
                                 listManager.addItemToList(listId: listId, item: item)
                                 newItem = ""
                             },
@@ -118,6 +190,7 @@ struct ListDetailsView: View {
                     .padding(.bottom, 8)
                 }
             }
+            .zIndex(showListDetailsOnboarding ? -1 : 1)
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -130,95 +203,98 @@ struct ListDetailsView: View {
                         .font(.system(size: 17, weight: .semibold))
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton()
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu(
-                    content: {
-                        Button(
-                            action: {
-                                if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
-                                    let message = "Join my list '\(list?.name ?? "Untitled")' on Dash!"
-                                    let activityVC = UIActivityViewController(
-                                        activityItems: [message, shareURL], applicationActivities: nil
-                                    )
-                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                       let rootViewController = windowScene.windows.first?.rootViewController
-                                    {
-                                        rootViewController.present(activityVC, animated: true, completion: nil)
+            if !showListDetailsOnboarding {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu(
+                        content: {
+                            Button(
+                                action: {
+                                    if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
+                                        let message = "Join my list '\(list?.name ?? "Untitled")' on Dash!"
+                                        let activityVC = UIActivityViewController(
+                                            activityItems: [message, shareURL], applicationActivities: nil
+                                        )
+                                        if let windowScene = UIApplication.shared.connectedScenes.first
+                                            as? UIWindowScene,
+                                            let rootViewController = windowScene.windows.first?.rootViewController
+                                        {
+                                            rootViewController.present(activityVC, animated: true, completion: nil)
+                                        }
                                     }
-                                }
-                            },
-                            label: {
-                                Image(systemName: "square.and.arrow.up")
-                                Text("Share")
-                            }
-                        )
-
-                        Divider()
-
-                        Button(
-                            action: {
-                                listManager.markAllItemsAsDone(listId: listId)
-                            },
-                            label: {
-                                Image(systemName: "checkmark.circle.fill")
-                                Text("Complete All")
-                            }
-                        )
-                        .disabled((list?.items.isEmpty ?? true))
-
-                        Button(
-                            action: {
-                                listManager.markAllItemsAsUndone(listId: listId)
-                            },
-                            label: {
-                                Image(systemName: "circle")
-                                Text("Reset All")
-                            }
-                        )
-                        .disabled((list?.items.isEmpty ?? true))
-
-                        Divider()
-
-                        Button(
-                            action: {
-                                showClearConfirmation = true
-                            },
-                            label: {
-                                Image(systemName: "sparkles")
-                                Text("Clear List")
-                            }
-                        )
-                        .disabled((list?.items.isEmpty ?? true))
-
-                        if isCreator {
-                            Button(
-                                action: {
-                                    showDeleteConfirmation = true
                                 },
                                 label: {
-                                    Image(systemName: "trash")
-                                    Text("Delete List")
+                                    Image(systemName: "square.and.arrow.up")
+                                    Text("Share")
                                 }
                             )
-                        } else {
+
+                            Divider()
+
                             Button(
                                 action: {
-                                    showLeaveConfirmation = true
+                                    listManager.markAllItemsAsDone(listId: listId)
                                 },
                                 label: {
-                                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    Text("Leave List")
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Complete All")
                                 }
                             )
+                            .disabled((list?.items.isEmpty ?? true))
+
+                            Button(
+                                action: {
+                                    listManager.markAllItemsAsUndone(listId: listId)
+                                },
+                                label: {
+                                    Image(systemName: "circle")
+                                    Text("Reset All")
+                                }
+                            )
+                            .disabled((list?.items.isEmpty ?? true))
+
+                            Divider()
+
+                            Button(
+                                action: {
+                                    showClearConfirmation = true
+                                },
+                                label: {
+                                    Image(systemName: "sparkles")
+                                    Text("Clear List")
+                                }
+                            )
+                            .disabled((list?.items.isEmpty ?? true))
+
+                            if isCreator {
+                                Button(
+                                    action: {
+                                        showDeleteConfirmation = true
+                                    },
+                                    label: {
+                                        Image(systemName: "trash")
+                                        Text("Delete List")
+                                    }
+                                )
+                            } else {
+                                Button(
+                                    action: {
+                                        showLeaveConfirmation = true
+                                    },
+                                    label: {
+                                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                                        Text("Leave List")
+                                    }
+                                )
+                            }
+                        },
+                        label: {
+                            Image(systemName: "gearshape.fill")
                         }
-                    },
-                    label: {
-                        Image(systemName: "gearshape.fill")
-                    }
-                )
+                    )
+                }
             }
         }
         .confirmationDialog(
@@ -231,7 +307,9 @@ struct ListDetailsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will permanently delete all \(list?.items.count ?? 0) items from this list. This action cannot be undone.")
+            Text(
+                "This will permanently delete all \(list?.items.count ?? 0) items from this list. This action cannot be undone."
+            )
         }
         .confirmationDialog(
             "Delete List",
@@ -243,7 +321,9 @@ struct ListDetailsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will permanently delete the list '\(list?.name ?? "Untitled")' and all its items. This action cannot be undone.")
+            Text(
+                "This will permanently delete the list '\(list?.name ?? "Untitled")' and all its items. This action cannot be undone."
+            )
         }
         .confirmationDialog(
             "Leave List",
@@ -255,7 +335,9 @@ struct ListDetailsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Are you sure you want to leave '\(list?.name ?? "Untitled")'? You'll need to be re-invited to join again.")
+            Text(
+                "Are you sure you want to leave '\(list?.name ?? "Untitled")'? You'll need to be re-invited to join again."
+            )
         }
     }
 }
