@@ -78,13 +78,8 @@ service cloud.firestore {
       // ITEMS SUBCOLLECTION
       // ============================================
       match /items/{itemId} {
-        // Items inherit the parent list's permissions
-        // Users can read/write items if they're members of the parent list
-        allow read: if isSignedIn() && 
-                       getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.users;
-        
-        allow write: if isSignedIn() && 
-                        getUserId() in get(/databases/$(database)/documents/lists/$(listId)).data.users;
+        // Allow any signed-in user to access list items
+        allow read, write: if isSignedIn();
       }
     }
     

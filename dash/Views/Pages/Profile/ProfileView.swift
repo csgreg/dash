@@ -183,53 +183,54 @@ struct ProfileView: View {
                         .padding(.horizontal)
                     }
 
-                    // Sign Out Button
-                    Button(action: {
-                        showSignOutConfirmation = true
-                    }) {
-                        HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Sign Out")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        )
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 20)
-
-                    // Delete Account Button
-                    Button(action: {
-                        showDeleteConfirmation = true
-                    }) {
-                        HStack {
-                            if isDeleting {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .red))
-                            } else {
-                                Image(systemName: "trash.fill")
+                    VStack {
+                        // Sign Out Button
+                        Button(action: {
+                            showSignOutConfirmation = true
+                        }) {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("Delete Account")
+                                Text("Sign Out")
                                     .font(.system(size: 16, weight: .semibold))
                             }
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            )
                         }
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(Color.red, lineWidth: 2)
-                        )
-                    }
-                    .disabled(isDeleting)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
+                        .padding(.horizontal)
+                        .padding(.top, 20)
 
+                        // Delete Account Button
+                        Button(action: {
+                            showDeleteConfirmation = true
+                        }) {
+                            HStack {
+                                if isDeleting {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                } else {
+                                    Image(systemName: "trash.fill")
+                                        .font(.system(size: 16, weight: .semibold))
+                                    Text("Delete Account")
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                            }
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                    .stroke(Color.red, lineWidth: 2)
+                            )
+                        }
+                        .disabled(isDeleting)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                    }
                     // App Version
                     Text("Version 1.0.0")
                         .font(.system(size: 13))

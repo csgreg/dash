@@ -52,6 +52,7 @@ struct CreateView: View {
         }) {
             createButtonLabel
         }
+        .modifier(GlassEffectIfAvailable())
         .disabled(!isValidInput)
         .opacity(isValidInput ? 1.0 : 0.5)
         .padding(.horizontal, 20)
@@ -222,9 +223,6 @@ struct EmojiSelectorButton: View {
                         .font(.system(size: 24))
                 } else {
                     ZStack {
-                        Circle()
-                            .fill(Color("purple").opacity(0.1))
-                            .frame(width: 36, height: 36)
                         Text("😊")
                             .font(.system(size: 20))
                             .opacity(0.5)

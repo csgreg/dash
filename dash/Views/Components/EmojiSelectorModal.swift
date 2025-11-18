@@ -26,7 +26,7 @@ struct EmojiSelectorModal: View {
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    withAnimation {
+                    withAnimation(.easeOut(duration: 0.15)) {
                         isPresented = false
                     }
                 }
@@ -42,7 +42,7 @@ struct EmojiSelectorModal: View {
                     Spacer()
 
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.15)) {
                             isPresented = false
                         }
                     }) {
@@ -61,7 +61,7 @@ struct EmojiSelectorModal: View {
                 ) {
                     ForEach(availableEmojis, id: \.self) { emoji in
                         Button(action: {
-                            withAnimation {
+                            withAnimation(.easeOut(duration: 0.15)) {
                                 selectedEmoji = emoji
                                 isPresented = false
                             }
@@ -87,7 +87,7 @@ struct EmojiSelectorModal: View {
                 // Clear button
                 if selectedEmoji != nil {
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.15)) {
                             selectedEmoji = nil
                             isPresented = false
                         }

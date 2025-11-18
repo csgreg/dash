@@ -19,7 +19,7 @@ struct ColorSelectorModal: View {
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    withAnimation {
+                    withAnimation(.easeOut(duration: 0.15)) {
                         isPresented = false
                     }
                 }
@@ -35,7 +35,7 @@ struct ColorSelectorModal: View {
                     Spacer()
 
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.15)) {
                             isPresented = false
                         }
                     }) {
@@ -54,7 +54,7 @@ struct ColorSelectorModal: View {
 
                         Button(action: {
                             if isUnlocked {
-                                withAnimation {
+                                withAnimation(.easeOut(duration: 0.15)) {
                                     selectedColor = achievement.unlockedColor
                                     isPresented = false
                                 }

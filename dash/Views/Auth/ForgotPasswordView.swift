@@ -74,12 +74,10 @@ struct ForgotPasswordView: View {
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 16)
-                .modifier(GlassEffectIfAvailable())
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .stroke(Color("purple").opacity(0.1), lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .padding(.horizontal, 24)
 
                 // Send reset link button

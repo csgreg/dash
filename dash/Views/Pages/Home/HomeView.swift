@@ -14,6 +14,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var listManager: ListManager
     @State private var firstName: String = ""
+    @State private var activeListId: String?
     @Binding var selectedTab: Int
 
     var body: some View {
@@ -24,19 +25,33 @@ struct HomeView: View {
                         selectedTab = 1
                     })
                 } else {
-                    ForEach(listManager.lists) { list in
-                        NavigationLink {
-                            ListDetailsView(listId: list.id)
-                        } label: {
-                            ListButton(
-                                text: list.name, emoji: list.emoji, color: list.color, allItems: list.items.count,
-                                completedItems: list.items.filter { $0.done }.count, sharedWith: list.users.count
-                            ).transition(.slide).padding(.horizontal)
-                        }.simultaneousGesture(
-                            TapGesture().onEnded {
+                    LazyVStack(spacing: 16) {
+                        ForEach(listManager.lists) { list in
+                            NavigationLink(
+                                tag: list.id,
+                                selection: $activeListId,
+                                destination: {
+                                    ListDetailsView(listId: list.id)
+                                },
+                                label: {
+                                    ListButton(
+                                        text: list.name, emoji: list.emoji, color: list.color,
+                                        allItems: list.items.count,
+                                        completedItems: list.items.filter { $0.done }.count,
+                                        sharedWith: list.users.count
+                                    )
+                                    .transition(.slide)
+                                    .padding(.horizontal)
+                                }
+                            )
+                            .buttonStyle(.plain)
+                            .onTapGesture {
                                 listManager.setSelectedList(listId: list.id)
-                            })
+                                activeListId = list.id
+                            }
+                        }
                     }
+                    .padding(.vertical, 8)
                 }
             }
             .navigationTitle(getGreeting())
@@ -50,6 +65,7 @@ struct HomeView: View {
             }
             .onAppear {
                 loadUserName()
+                activeListId = nil
             }
         }
     }

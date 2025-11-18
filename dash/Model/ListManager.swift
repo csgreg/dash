@@ -58,6 +58,8 @@ class ListManager: ObservableObject {
                         let list = self.parseList(documentID: documentID, data: data)
                         self.lists.append(list)
                         print("Added list: \(list.name)")
+                        print("Members for \(documentID): \(list.users)")
+                        print("Current user: \(self.userId), contains? \(list.users.contains(self.userId))")
                         // Start listening to items subcollection
                         self.listenToItems(for: documentID)
 
@@ -115,6 +117,9 @@ class ListManager: ObservableObject {
             guard let snapshot = querySnapshot else {
                 if let error = error {
                     print("Error fetching items: \(error.localizedDescription)")
+                    if let list = self.lists.first(where: { $0.id == listId }) {
+                        print("Current cached members for \(listId): \(list.users)")
+                    }
                 }
                 return
             }
