@@ -78,7 +78,7 @@ struct ListDetailsView: View {
                                 .fill(Color("purple").opacity(0.1))
                                 .frame(width: 100, height: 100)
 
-                            Text("😊")
+                            Text("📌")
                                 .font(.system(size: 50))
                         }
 

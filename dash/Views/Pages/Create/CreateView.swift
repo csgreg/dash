@@ -31,93 +31,135 @@ struct CreateView: View {
         return false
     }
 
+    private var createButton: some View {
+        Button(action: {
+            listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { success, message in
+                if success {
+                    self.showSuccessAlert = true
+                    // Reset form and navigate to home on success
+                    self.listName = ""
+                    self.selectedEmoji = nil
+                    self.selectedColor = "purple"
+                    // Navigate to home page
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        selectedTab = 0
+                    }
+                } else {
+                    self.errorMessage = message
+                    self.showErrorAlert = true
+                }
+            }
+        }) {
+            createButtonLabel
+        }
+        .disabled(!isValidInput)
+        .opacity(isValidInput ? 1.0 : 0.5)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+    }
+
+    private var createButtonLabel: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 20, weight: .bold))
+            Text("Create List")
+                .font(.system(size: 18, weight: .bold))
+        }
+        .foregroundColor(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(buttonGradient)
+        .cornerRadius(.infinity)
+        .shadow(color: Color("purple").opacity(0.3), radius: 12, x: 0, y: 6)
+    }
+
+    private var buttonGradient: LinearGradient {
+        LinearGradient(
+            colors: [Color("purple").opacity(1), Color("purple").opacity(0.7)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var formScrollView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                descriptionText
+                listNameSection
+                customizationSection
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 100)
+            }
+        }
+    }
+
+    private var descriptionText: some View {
+        Text(
+            "Craft customized lists for any purpose, share a unique code for seamless collaboration."
+        )
+        .font(.system(size: 15, weight: .regular))
+        .foregroundColor(Color("dark-gray"))
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+    }
+
+    private var listNameSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("List Name")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color("dark-gray"))
+                .padding(.horizontal, 24)
+
+            HStack(spacing: 12) {
+                Image(systemName: "pencil.line")
+                    .foregroundColor(Color("purple"))
+                    .font(.system(size: 16, weight: .semibold))
+
+                TextField("Enter list name", text: $listName)
+                    .font(.system(size: 16, weight: .medium))
+
+                if !listName.isEmpty {
+                    Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(isValidInput ? .green : .red)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Color.white)
+            .cornerRadius(.infinity)
+            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+            .padding(.horizontal, 20)
+        }
+    }
+
+    private var customizationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Customize")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color("dark-gray"))
+                .padding(.horizontal, 24)
+
+            VStack(spacing: 12) {
+                EmojiSelectorButton(selectedEmoji: selectedEmoji, showModal: $showEmojiModal)
+                ColorSelectorButton(selectedColor: selectedColor, showModal: $showColorModal)
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Description
-                    Text(
-                        "Craft customized lists for any purpose, share a unique code for seamless collaboration."
-                    )
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(Color("dark-gray"))
-                    .padding(.horizontal, 24)
-                    .padding(.top, 4)
+            ZStack {
+                formScrollView
 
-                    // List name input - with icon
-                    HStack(spacing: 12) {
-                        Image(systemName: "pencil.line")
-                            .foregroundColor(.black)
-                            .font(.system(size: 16, weight: .semibold))
-
-                        TextField("List name", text: $listName)
-                            .font(.system(size: 16, weight: .medium))
-
-                        if !listName.isEmpty {
-                            Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(isValidInput ? .green : .red)
-                        }
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 16)
-                    .modifier(GlassEffectIfAvailable())
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(Color("purple").opacity(0.1), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                    .padding(.horizontal, 20)
-
-                    // Emoji selector button
-                    EmojiSelectorButton(selectedEmoji: selectedEmoji, showModal: $showEmojiModal)
-                        .padding(.horizontal, 20)
-
-                    // Color selector button
-                    ColorSelectorButton(selectedColor: selectedColor, showModal: $showColorModal)
-                        .padding(.horizontal, 20)
-
-                    Spacer(minLength: 40)
-
-                    // Create button
-                    Button(action: {
-                        listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { success, message in
-                            if success {
-                                self.showSuccessAlert = true
-                                // Reset form and navigate to home on success
-                                self.listName = ""
-                                self.selectedEmoji = nil
-                                self.selectedColor = nil
-                                // Navigate to home page
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    selectedTab = 0
-                                }
-                            } else {
-                                self.errorMessage = message
-                                self.showErrorAlert = true
-                            }
-                        }
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 18, weight: .bold))
-                            Text("Create List")
-                                .font(.system(size: 17, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            Color("purple"), in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                        )
-                    }
-                    .modifier(GlassEffectIfAvailable())
-                    .disabled(!isValidInput)
-                    .opacity(isValidInput ? 1.0 : 0.6)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 32)
+                // Fixed bottom button
+                VStack {
+                    Spacer()
+                    createButton
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .navigationTitle("Let's do this! 🤩")
             .toolbar {
@@ -177,31 +219,33 @@ struct EmojiSelectorButton: View {
                 // Emoji preview or placeholder
                 if let emoji = selectedEmoji {
                     Text(emoji)
-                        .font(.system(size: 22))
+                        .font(.system(size: 24))
                 } else {
-                    Text("😊")
-                        .font(.system(size: 22))
-                        .opacity(0.4)
+                    ZStack {
+                        Circle()
+                            .fill(Color("purple").opacity(0.1))
+                            .frame(width: 36, height: 36)
+                        Text("😊")
+                            .font(.system(size: 20))
+                            .opacity(0.5)
+                    }
                 }
 
-                Text(selectedEmoji == nil ? "Select emoji (optional)" : "Change emoji")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color.gray.opacity(0.5))
+                Text(selectedEmoji == nil ? "Select emoji" : "Change emoji")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Color("dark-gray"))
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color("purple"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color("purple").opacity(0.5))
             }
             .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .modifier(GlassEffectIfAvailable())
-            .overlay(
-                RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    .stroke(Color("purple").opacity(0.1), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+            .padding(.vertical, 14)
+            .background(Color.white)
+            .cornerRadius(.infinity)
+            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
     }
 }
@@ -223,27 +267,29 @@ struct ColorSelectorButton: View {
                 if let colorName = selectedColor {
                     Circle()
                         .fill(Color(colorName))
-                        .frame(width: 26, height: 26)
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 2)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
 
                 Text("Change color")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color.gray.opacity(0.5))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Color("dark-gray"))
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color("purple"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color("purple").opacity(0.5))
             }
             .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .modifier(GlassEffectIfAvailable())
-            .overlay(
-                RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    .stroke(Color("purple").opacity(0.1), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+            .padding(.vertical, 14)
+            .background(Color.white)
+            .cornerRadius(.infinity)
+            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
     }
 }
