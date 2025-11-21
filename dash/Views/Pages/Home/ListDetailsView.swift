@@ -212,7 +212,7 @@ struct ListDetailsView: View {
                         content: {
                             Button(
                                 action: {
-                                    if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
+                                    if let shareURL = DeepLinkHandler.generateShareURL(for: listId, useUniversalLink: true) {
                                         let message = "Join my list '\(list?.name ?? "Untitled")' on Dash!"
                                         let activityVC = UIActivityViewController(
                                             activityItems: [message, shareURL], applicationActivities: nil

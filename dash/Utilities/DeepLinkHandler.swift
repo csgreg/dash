@@ -64,7 +64,7 @@ class DeepLinkHandler: ObservableObject {
     static func generateShareURL(for listId: String, useUniversalLink: Bool = false) -> URL? {
         if useUniversalLink {
             // This requires setting up Apple App Site Association file
-            return URL(string: "https://dashapp.live/join/\(listId)")
+            return URL(string: "https://www.justdashapp.com/join/\(listId)")
         } else {
             // Custom URL scheme (works immediately, no server setup needed)
             return URL(string: "dash://join/\(listId)")
