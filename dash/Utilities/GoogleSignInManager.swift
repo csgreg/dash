@@ -45,6 +45,12 @@ class GoogleSignInManager: ObservableObject {
                 self.isLoading = false
 
                 if let error = error {
+                    // If the user cancelled the Google sign-in flow, do not treat it as an error
+                    let nsError = error as NSError
+                    if nsError.code == GIDSignInError.canceled.rawValue {
+                        return
+                    }
+
                     self.errorMessage = error.localizedDescription
                     completion(.failure(error))
                     return

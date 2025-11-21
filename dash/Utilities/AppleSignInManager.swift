@@ -109,6 +109,12 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
     func authorizationController(controller _: ASAuthorizationController, didCompleteWithError error: Error) {
         isLoading = false
+
+        // If the user cancelled the Apple sign-in sheet, do not treat it as an error
+        if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+            return
+        }
+
         errorMessage = error.localizedDescription
         completion?(.failure(error))
     }
