@@ -18,6 +18,7 @@ struct LoginView: View {
     @State private var loading: Bool = false
     @State private var showForgotPassword: Bool = false
     @StateObject private var googleSignInManager = GoogleSignInManager()
+    @StateObject private var appleSignInManager = AppleSignInManager()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -172,21 +173,22 @@ struct LoginView: View {
             // Apple and Google Sign In Buttons (side by side)
             HStack(spacing: 12) {
                 // Apple Sign In Button
-                Button(action: {
-                    // TODO: Implement Apple Sign-In when Apple Developer account is available
-                    print("Apple Sign-In tapped - Not yet implemented")
-                }) {
-                    Image(systemName: "apple.logo")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            Color.black,
-                            in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                        )
-                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                }
+                AppleSignInButton(
+                    action: {
+                        appleSignInManager.signInWithApple { result in
+                            switch result {
+                            case let .success(uid):
+                                withAnimation {
+                                    userID = uid
+                                }
+                            case let .failure(error):
+                                signInFail = true
+                                print("Apple Sign-In Error: \(error.localizedDescription)")
+                            }
+                        }
+                    },
+                    isLoading: appleSignInManager.isLoading
+                )
 
                 // Google Sign In Button
                 Button(action: {

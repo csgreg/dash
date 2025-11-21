@@ -22,10 +22,6 @@ struct AppleSignInButton: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.white)
                 }
-
-                Text("Continue with Apple")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)

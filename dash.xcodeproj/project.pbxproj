@@ -11,7 +11,6 @@
 		78AD1A682EBB7F4B00150940 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 78AD1A672EBB7F4B00150940 /* GoogleSignInSwift */; };
 		78D725172D03CE08007A20D7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 78D725162D03CE08007A20D7 /* FirebaseAuth */; };
 		78D725192D03CE0E007A20D7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 78D725182D03CE0E007A20D7 /* FirebaseFirestore */; };
-		78D7251B2D03CE28007A20D7 /* RiveRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 78D7251A2D03CE28007A20D7 /* RiveRuntime */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,7 +76,6 @@
 				78D725172D03CE08007A20D7 /* FirebaseAuth in Frameworks */,
 				78AD1A662EBB7F4B00150940 /* GoogleSignIn in Frameworks */,
 				78D725192D03CE0E007A20D7 /* FirebaseFirestore in Frameworks */,
-				78D7251B2D03CE28007A20D7 /* RiveRuntime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +146,6 @@
 			packageProductDependencies = (
 				78D725162D03CE08007A20D7 /* FirebaseAuth */,
 				78D725182D03CE0E007A20D7 /* FirebaseFirestore */,
-				78D7251A2D03CE28007A20D7 /* RiveRuntime */,
 				78AD1A652EBB7F4B00150940 /* GoogleSignIn */,
 				78AD1A672EBB7F4B00150940 /* GoogleSignInSwift */,
 			);
@@ -235,7 +232,6 @@
 			mainGroup = 78D724822D03CAA1007A20D7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				78D724B82D03CB38007A20D7 /* XCRemoteSwiftPackageReference "rive-ios" */,
 				78D724B92D03CB7F007A20D7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				78AD193F2EBB7D8A00150940 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
@@ -435,16 +431,18 @@
 		78D724B02D03CAA2007A20D7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = dashicon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = dash/dash.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"dash/Preview Content\"";
 				DEVELOPMENT_TEAM = 8VZSVBTHF7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = dash/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Dash;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -455,7 +453,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.swiftcore.dash;
+				PRODUCT_BUNDLE_IDENTIFIER = com.csgergo.dash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -466,17 +464,19 @@
 		78D724B12D03CAA2007A20D7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = dashicon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = dash/dashRelease.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"dash/Preview Content\"";
 				DEVELOPMENT_TEAM = 8VZSVBTHF7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = dash/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Dash;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -487,8 +487,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.swiftcore.dash;
+				PRODUCT_BUNDLE_IDENTIFIER = com.csgergo.dash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -617,14 +618,6 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		78D724B82D03CB38007A20D7 /* XCRemoteSwiftPackageReference "rive-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/rive-app/rive-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.4.2;
-			};
-		};
 		78D724B92D03CB7F007A20D7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -655,11 +648,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 78D724B92D03CB7F007A20D7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
-		};
-		78D7251A2D03CE28007A20D7 /* RiveRuntime */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 78D724B82D03CB38007A20D7 /* XCRemoteSwiftPackageReference "rive-ios" */;
-			productName = RiveRuntime;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -8,7 +8,6 @@
 import FirebaseAuth
 import FirebaseCore
 import FirebaseFirestore
-import RiveRuntime
 import SwiftUI
 
 struct HomeView: View {
