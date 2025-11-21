@@ -88,7 +88,7 @@ struct PrivacyPolicyView: View {
                 // Contact
                 SectionView(
                     title: "Contact Us",
-                    content: "If you have any questions about this Privacy Policy, please contact us at: support@dashapp.com"
+                    content: "If you have any questions about this Privacy Policy, please contact us at: support@justdashapp.com"
                 )
 
                 Spacer(minLength: 40)

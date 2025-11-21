@@ -136,21 +136,24 @@ struct ProfileView: View {
                             Divider()
                                 .padding(.leading, 60)
 
-                            NavigationLink(destination: TermsAndConditionsView()) {
+                            Button(action: {
+                                if let url = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
                                 ProfileRow(
-                                    icon: "doc.text.fill",
-                                    title: "Terms & Conditions",
+                                    icon: "globe",
+                                    title: "Terms of Service",
                                     value: "",
                                     iconColor: .purple,
                                     showChevron: true
                                 )
                             }
-
                             Divider()
                                 .padding(.leading, 60)
 
                             Button(action: {
-                                if let url = URL(string: "https://dashapp.live") {
+                                if let url = URL(string: "https://justdashapp.com") {
                                     UIApplication.shared.open(url)
                                 }
                             }) {
