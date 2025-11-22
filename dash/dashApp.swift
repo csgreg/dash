@@ -45,8 +45,9 @@ struct DashApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(userId: userID, deepLinkHandler: deepLinkHandler)
-                .onOpenURL { url in
-                    print("📱 Received URL: \(url.absoluteString)")
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                    guard let url = userActivity.webpageURL else { return }
+                    print("🔗 Universal Link received: \(url.absoluteString)")
                     deepLinkHandler.handleURL(url)
                 }
         }

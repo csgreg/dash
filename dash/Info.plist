@@ -11,16 +11,6 @@
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.swiftcore.dash</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>dash</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.989862730251-3ilnp8955aua2sakas9lka50m5lepqhg</string>
