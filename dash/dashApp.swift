@@ -11,6 +11,8 @@ import GoogleSignIn
 import SwiftUI
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    var deepLinkHandler: DeepLinkHandler?
+
     func application(
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -33,6 +35,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     {
         return GIDSignIn.sharedInstance.handle(url)
     }
+
+    // Handle Universal Links when app is not running or in background
+    func application(
+        _: UIApplication,
+        continue userActivity: NSUserActivity,
+        restorationHandler _: @escaping ([UIUserActivityRestoring]?) -> Void
+    ) -> Bool {
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+              let url = userActivity.webpageURL
+        else {
+            return false
+        }
+
+        deepLinkHandler?.handleURL(url)
+        return true
+    }
 }
 
 @main
@@ -45,9 +63,15 @@ struct DashApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(userId: userID, deepLinkHandler: deepLinkHandler)
+                .onAppear {
+                    // Connect deepLinkHandler to AppDelegate for background handling
+                    delegate.deepLinkHandler = deepLinkHandler
+                }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
                     guard let url = userActivity.webpageURL else { return }
-                    print("🔗 Universal Link received: \(url.absoluteString)")
+                    deepLinkHandler.handleURL(url)
+                }
+                .onOpenURL { url in
                     deepLinkHandler.handleURL(url)
                 }
         }
