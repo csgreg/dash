@@ -12,6 +12,7 @@ struct ListDetailsView: View {
     @State private var showClearConfirmation = false
     @State private var showDeleteConfirmation = false
     @State private var showLeaveConfirmation = false
+    @State private var showListSettings = false
     @AppStorage("hasSeenListDetailsOnboarding") private var hasSeenListDetailsOnboarding: Bool = false
     @State private var showListDetailsOnboarding: Bool = false
 
@@ -210,6 +211,20 @@ struct ListDetailsView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu(
                         content: {
+                            if isCreator {
+                                Button(
+                                    action: {
+                                        showListSettings = true
+                                    },
+                                    label: {
+                                        Image(systemName: "slider.horizontal.3")
+                                        Text("List Settings")
+                                    }
+                                )
+
+                                Divider()
+                            }
+
                             Button(
                                 action: {
                                     if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
@@ -256,6 +271,17 @@ struct ListDetailsView: View {
                             .disabled((list?.items.isEmpty ?? true))
 
                             Divider()
+
+                            Button(
+                                action: {
+                                    listManager.removeCompletedItems(listId: listId)
+                                },
+                                label: {
+                                    Image(systemName: "checkmark.circle.badge.xmark")
+                                    Text("Remove Completed")
+                                }
+                            )
+                            .disabled(!(list?.items.contains(where: { $0.done }) ?? false))
 
                             Button(
                                 action: {
@@ -338,6 +364,19 @@ struct ListDetailsView: View {
             Text(
                 "Are you sure you want to leave '\(list?.name ?? "Untitled")'? You'll need to be re-invited to join again."
             )
+        }
+        .sheet(isPresented: $showListSettings) {
+            if let list = list {
+                ListSettingsView(
+                    listId: listId,
+                    currentName: list.name,
+                    currentEmoji: list.emoji,
+                    currentColor: list.color
+                )
+                .environmentObject(listManager)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
         }
     }
 }

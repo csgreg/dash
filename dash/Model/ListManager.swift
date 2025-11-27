@@ -177,14 +177,47 @@ class ListManager: ObservableObject {
         if let color = color {
             data["color"] = color
         }
+        // Optimistically succeed immediately since we have offline persistence
+        // Firestore will sync when online
+        completion(true, "")
+
         firestore.collection("lists").document(uid).setData(data) { err in
             if let err = err {
-                print("Error writing document: \(err)")
-                completion(false, "Failed to create list. Please check your internet connection and try again.")
-                return
+                print("⚠️ Create list sync error: \(err.localizedDescription)")
             } else {
-                print("Document successfully written!")
-                completion(true, "")
+                print("✅ List synced to server")
+            }
+        }
+    }
+
+    func updateList(listId: String, listName: String, emoji: String?, color: String?, completion: @escaping (Bool, String) -> Void) {
+        var data: [String: Any] = [
+            "name": listName,
+        ]
+
+        // Update emoji (or remove if nil)
+        if let emoji = emoji {
+            data["emoji"] = emoji
+        } else {
+            data["emoji"] = FieldValue.delete()
+        }
+
+        // Update color (or remove if nil)
+        if let color = color {
+            data["color"] = color
+        } else {
+            data["color"] = FieldValue.delete()
+        }
+
+        // Optimistically succeed immediately since we have offline persistence
+        // Firestore will sync when online
+        completion(true, "")
+
+        firestore.collection("lists").document(listId).updateData(data) { err in
+            if let err = err {
+                print("⚠️ Update list sync error: \(err.localizedDescription)")
+            } else {
+                print("✅ List update synced to server")
             }
         }
     }
@@ -264,12 +297,37 @@ class ListManager: ObservableObject {
     }
 
     func deleteList(listId: String) {
+        // First, get all items to delete from subcollection
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
+        let items = lists[listIndex].items
+
+        // Remove from local state immediately
         lists = lists.filter { $0.id != listId }
-        firestore.collection("lists").document(listId).delete { err in
-            if let err = err {
-                print("Error removing document: \(err)")
+
+        // Delete all items in subcollection first
+        let batch = firestore.batch()
+
+        for item in items {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.id)
+            batch.deleteDocument(itemRef)
+        }
+
+        // Commit item deletions first
+        batch.commit { error in
+            if let error = error {
+                print("Error deleting items: \(error)")
             } else {
-                print("Document successfully removed!")
+                print("All items deleted, now deleting list document")
+
+                // Now delete the list document itself
+                self.firestore.collection("lists").document(listId).delete { err in
+                    if let err = err {
+                        print("Error removing list document: \(err)")
+                    } else {
+                        print("List document successfully removed!")
+                    }
+                }
             }
         }
     }
@@ -325,6 +383,21 @@ class ListManager: ObservableObject {
                 print("Error marking item as undone: \(error)")
             } else {
                 print("Item marked as undone!")
+            }
+        }
+    }
+
+    func updateItemText(listId: String, itemId: String, newText: String) {
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
+
+        itemRef.updateData([
+            "text": newText,
+        ]) { error in
+            if let error = error {
+                print("Error updating item text: \(error)")
+            } else {
+                print("Item text updated!")
             }
         }
     }
@@ -434,6 +507,29 @@ class ListManager: ObservableObject {
                 print("Error clearing all items: \(error)")
             } else {
                 print("All items cleared!")
+            }
+        }
+    }
+
+    func removeCompletedItems(listId: String) {
+        guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
+        let completedItems = lists[listIndex].items.filter { $0.done }
+
+        guard !completedItems.isEmpty else { return }
+
+        let batch = firestore.batch()
+
+        for item in completedItems {
+            let itemRef = firestore.collection("lists").document(listId)
+                .collection("items").document(item.id)
+            batch.deleteDocument(itemRef)
+        }
+
+        batch.commit { error in
+            if let error = error {
+                print("Error removing completed items: \(error)")
+            } else {
+                print("Completed items removed!")
             }
         }
     }

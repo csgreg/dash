@@ -15,7 +15,6 @@ struct CreateView: View {
     @State var listName: String = ""
     @State var selectedEmoji: String?
     @State var selectedColor: String? = "purple" // Auto-select first color
-    @State var showSuccessAlert: Bool = false
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
     @State var showEmojiModal: Bool = false
@@ -35,15 +34,11 @@ struct CreateView: View {
         Button(action: {
             listManager.createList(listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor) { success, message in
                 if success {
-                    self.showSuccessAlert = true
                     // Reset form and navigate to home on success
                     self.listName = ""
                     self.selectedEmoji = nil
                     self.selectedColor = "purple"
-                    // Navigate to home page
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        selectedTab = 0
-                    }
+                    selectedTab = 0
                 } else {
                     self.errorMessage = message
                     self.showErrorAlert = true
@@ -190,11 +185,6 @@ struct CreateView: View {
                     }
                 }
             )
-            .alert("Success", isPresented: $showSuccessAlert) {
-                Button("OK") {}
-            } message: {
-                Text("Your list has been created successfully!")
-            }
             .alert("Error", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) {}
             } message: {

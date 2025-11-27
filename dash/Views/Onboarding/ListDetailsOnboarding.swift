@@ -123,27 +123,27 @@ struct ListDetailsOnboardingPage1: View {
             // Feature highlights
             VStack(spacing: 14) {
                 OnboardingFeature(
-                    icon: "text.badge.plus",
-                    title: "Add Items",
-                    description: "Type and tap Add to create"
-                )
-
-                OnboardingFeature(
-                    icon: "arrow.up.arrow.down",
-                    title: "Reorder",
-                    description: "Tap Edit, then drag to reorder"
-                )
-
-                OnboardingFeature(
                     icon: "checkmark.circle.fill",
                     title: "Complete",
-                    description: "Swipe left to mark as done or reset"
+                    description: "Tap the checkbox to mark as done"
+                )
+
+                OnboardingFeature(
+                    icon: "pencil",
+                    title: "Edit",
+                    description: "Tap item text or swipe left to edit"
                 )
 
                 OnboardingFeature(
                     icon: "trash",
                     title: "Delete",
                     description: "Swipe right to delete item"
+                )
+
+                OnboardingFeature(
+                    icon: "arrow.up.arrow.down",
+                    title: "Reorder",
+                    description: "Tap Edit, then drag to reorder"
                 )
             }
             .padding(.horizontal, 20)
@@ -195,9 +195,15 @@ struct ListDetailsOnboardingPage2: View {
                 )
 
                 OnboardingFeature(
-                    icon: "gearshape.fill",
-                    title: "Manage",
-                    description: "Complete, clear, or delete list"
+                    icon: "slider.horizontal.3",
+                    title: "List Settings",
+                    description: "Rename, change emoji or color"
+                )
+
+                OnboardingFeature(
+                    icon: "ellipsis.circle",
+                    title: "List Options",
+                    description: "Complete all, clear, or delete list"
                 )
             }
             .padding(.horizontal, 20)

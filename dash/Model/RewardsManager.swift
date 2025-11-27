@@ -44,7 +44,7 @@ class RewardsManager: ObservableObject {
         Achievement(
             id: "productivity-pro",
             title: "Productivity Pro",
-            description: "Create 500 items",
+            description: "Create 200 items",
             icon: "bolt.fill",
             requiredItems: 200,
             unlockedColor: "blue",
@@ -53,7 +53,7 @@ class RewardsManager: ObservableObject {
         Achievement(
             id: "legendary",
             title: "Legendary",
-            description: "Create 1,000 items",
+            description: "Create 500 items",
             icon: "crown.fill",
             requiredItems: 500,
             unlockedColor: "yellow",
