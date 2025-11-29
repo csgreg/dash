@@ -101,8 +101,9 @@ class ListManager: ObservableObject {
         let color = data["color"] as? String
         let users = data["users"] as? [String] ?? []
         let creatorId = data["creatorId"] as? String
+        let joinCode = data["joinCode"] as? String
         // Items will be populated by the items subcollection listener
-        return Listy(id: documentID, name: name, emoji: emoji, color: color, items: [], users: users, creatorId: creatorId)
+        return Listy(id: documentID, name: name, emoji: emoji, color: color, items: [], users: users, creatorId: creatorId, joinCode: joinCode)
     }
 
     /// Sets up a listener for items in a specific list
@@ -166,12 +167,21 @@ class ListManager: ObservableObject {
         return Item(id: itemId, text: text, done: done, order: order)
     }
 
+    /// Generates a unique 8-character alphanumeric join code
+    private func generateJoinCode() -> String {
+        let characters = "abcdefghjkmnpqrstuvwxyz23456789" // Excluded similar chars: i,l,o,0,1
+        return String((0 ..< 8).map { _ in characters.randomElement()! })
+    }
+
     func createList(listName: String, emoji: String? = nil, color: String? = nil, completion: @escaping (Bool, String) -> Void) {
         let uid = UUID().uuidString
+        let joinCode = generateJoinCode()
+
         var data: [String: Any] = [
             "name": listName,
             "users": [userId],
             "creatorId": userId,
+            "joinCode": joinCode,
         ]
         if let emoji = emoji {
             data["emoji"] = emoji
@@ -179,6 +189,9 @@ class ListManager: ObservableObject {
         if let color = color {
             data["color"] = color
         }
+
+        AppLogger.database.info("Creating list with joinCode: \(joinCode)")
+
         // Optimistically succeed immediately since we have offline persistence
         // Firestore will sync when online
         completion(true, "")
@@ -187,7 +200,7 @@ class ListManager: ObservableObject {
             if let err = err {
                 AppLogger.network.error("Create list sync error: \(err.localizedDescription)")
             } else {
-                AppLogger.network.info("List synced to server")
+                AppLogger.network.info("List synced to server with joinCode: \(joinCode)")
             }
         }
     }
@@ -224,36 +237,60 @@ class ListManager: ObservableObject {
         }
     }
 
-    func joinToList(listId: String, userId: String, completion: @escaping (String) -> Void) {
-        if lists.contains(where: { $0.id == listId }) {
-            completion("Your profile already have this list.")
-            return
-        }
-        let docRef = firestore.collection("lists").document(listId)
-        docRef.getDocument { document, _ in
-            if let document = document, document.exists {
-                let data = document.data()
-                if let data {
-                    var users = data["users"] as? [String] ?? []
-                    users.append(userId)
+    func joinToList(joinCode: String, userId: String, completion: @escaping (Bool, String) -> Void) {
+        AppLogger.database.info("Attempting to join list with code: \(joinCode)")
 
-                    docRef.updateData([
-                        "users": users,
-                    ]) { err in
-                        if let err = err {
-                            AppLogger.database.error("Failed to join list: \(err.localizedDescription)")
-                            completion("Failed to join, check your internet connection or try again!")
-                        } else {
-                            AppLogger.database.notice("User joined list")
-                            completion("Successfully joined the list!")
-                        }
+        // Query for list by joinCode
+        firestore.collection("lists")
+            .whereField("joinCode", isEqualTo: joinCode)
+            .limit(to: 1)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    AppLogger.database.error("Error fetching list: \(error.localizedDescription)")
+                    completion(false, "Connection error. Please check your internet and try again.")
+                    return
+                }
+
+                guard let documents = snapshot?.documents, !documents.isEmpty else {
+                    AppLogger.database.warning("List does not exist for joinCode: \(joinCode)")
+                    completion(false, "This join code is invalid or the list has been deleted.")
+                    return
+                }
+
+                let document = documents[0]
+                let listId = document.documentID
+
+                // Check if user already has this list
+                if self.lists.contains(where: { $0.id == listId }) {
+                    AppLogger.database.info("User already a member of list: \(listId)")
+                    completion(false, "You're already a member of this list! 🎉")
+                    return
+                }
+
+                guard let data = document.data() as? [String: Any] else {
+                    AppLogger.database.error("Failed to parse list data")
+                    completion(false, "Something went wrong. Please try again.")
+                    return
+                }
+
+                // Get list name for better message
+                let listName = data["name"] as? String ?? "the list"
+                let listEmoji = data["emoji"] as? String
+                let displayName = listEmoji != nil ? "\(listEmoji!) \(listName)" : listName
+
+                var users = data["users"] as? [String] ?? []
+                users.append(userId)
+
+                document.reference.updateData(["users": users]) { updateError in
+                    if let updateError = updateError {
+                        AppLogger.database.error("Failed to join list: \(updateError.localizedDescription)")
+                        completion(false, "Failed to join the list. Please try again.")
+                    } else {
+                        AppLogger.database.notice("User successfully joined list: \(listName)")
+                        completion(true, "You've joined \"\(displayName)\"! 🎉")
                     }
                 }
-            } else {
-                AppLogger.database.warning("List does not exist")
-                completion("This list does not exist!")
             }
-        }
     }
 
     func addItemToList(listId: String, item: Item) {
@@ -551,30 +588,76 @@ class ListManager: ObservableObject {
                     return
                 }
 
-                let batch = self.firestore.batch()
+                let dispatchGroup = DispatchGroup()
+                var deletionError: Error?
 
                 for document in documents {
+                    let data = document.data()
                     let listRef = document.reference
+                    let creatorId = data["creatorId"] as? String
 
-                    // Delete all items in the list
-                    listRef.collection("items").getDocuments { itemsSnapshot, _ in
-                        if let items = itemsSnapshot?.documents {
-                            for item in items {
-                                batch.deleteDocument(item.reference)
+                    dispatchGroup.enter()
+
+                    if creatorId == self.userId {
+                        // User is the creator - delete the entire list and all items
+                        AppLogger.database.info("Deleting owned list: \(document.documentID)")
+
+                        // First, delete all items
+                        listRef.collection("items").getDocuments { itemsSnapshot, itemsError in
+                            if let itemsError = itemsError {
+                                AppLogger.database.error("Failed to fetch items for deletion: \(itemsError.localizedDescription)")
+                            }
+
+                            let itemBatch = self.firestore.batch()
+                            if let items = itemsSnapshot?.documents {
+                                for item in items {
+                                    itemBatch.deleteDocument(item.reference)
+                                }
+                            }
+
+                            // Commit item deletions
+                            itemBatch.commit { itemDeleteError in
+                                if let itemDeleteError = itemDeleteError {
+                                    AppLogger.database.error("Failed to delete items: \(itemDeleteError.localizedDescription)")
+                                    deletionError = itemDeleteError
+                                }
+
+                                // Then delete the list itself
+                                listRef.delete { listDeleteError in
+                                    if let listDeleteError = listDeleteError {
+                                        AppLogger.database.error("Failed to delete list: \(listDeleteError.localizedDescription)")
+                                        deletionError = listDeleteError
+                                    } else {
+                                        AppLogger.database.notice("Deleted owned list and its items")
+                                    }
+                                    dispatchGroup.leave()
+                                }
                             }
                         }
-                    }
+                    } else {
+                        // User is NOT the creator - just remove user from the list
+                        AppLogger.database.info("Leaving shared list: \(document.documentID)")
 
-                    // Delete the list itself
-                    batch.deleteDocument(listRef)
+                        var users = data["users"] as? [String] ?? []
+                        users.removeAll { $0 == self.userId }
+
+                        listRef.updateData(["users": users]) { updateError in
+                            if let updateError = updateError {
+                                AppLogger.database.error("Failed to leave list: \(updateError.localizedDescription)")
+                                deletionError = updateError
+                            } else {
+                                AppLogger.database.notice("Left shared list")
+                            }
+                            dispatchGroup.leave()
+                        }
+                    }
                 }
 
-                batch.commit { error in
-                    if let error = error {
-                        AppLogger.database.error("Failed to delete lists: \(error.localizedDescription)")
+                dispatchGroup.notify(queue: .main) {
+                    if let error = deletionError {
                         completion(error)
                     } else {
-                        AppLogger.database.notice("All user lists deleted")
+                        AppLogger.database.notice("Account cleanup completed: owned lists deleted, shared lists left")
                         completion(nil)
                     }
                 }

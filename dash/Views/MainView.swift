@@ -12,18 +12,23 @@ import SwiftUI
 struct MainView: View {
     @AppStorage("uid") var userID: String = ""
 
-    @State private var selectedTab: Int = 0
+    @Binding var selectedTab: Bool
+    @State private var currentTab: Int = 0
+
+    init(selectedTab: Binding<Bool> = .constant(false)) {
+        _selectedTab = selectedTab
+    }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView(selectedTab: $selectedTab).preferredColorScheme(.light)
+        TabView(selection: $currentTab) {
+            HomeView(selectedTab: $currentTab).preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "house")
                     Text("Lists")
                 }
                 .tag(0)
 
-            CreateView(selectedTab: $selectedTab).preferredColorScheme(.light)
+            CreateView(selectedTab: $currentTab).preferredColorScheme(.light)
                 .tabItem {
                     Image(systemName: "plus.square.fill.on.square.fill")
                     Text("Create")
@@ -45,8 +50,17 @@ struct MainView: View {
                 .tag(3)
         }
         .preferredColorScheme(.light)
-        .onChange(of: selectedTab) { _, newTab in
+        .onChange(of: currentTab) { _, newTab in
             logTabChange(newTab)
+        }
+        .onChange(of: selectedTab) { _, shouldNavigateHome in
+            if shouldNavigateHome {
+                currentTab = 0
+                // Reset the binding after navigation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    selectedTab = false
+                }
+            }
         }
         .onAppear {
             AppLogger.ui.notice("App session started")

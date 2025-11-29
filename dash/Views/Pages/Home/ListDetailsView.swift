@@ -227,8 +227,14 @@ struct ListDetailsView: View {
 
                             Button(
                                 action: {
-                                    if let shareURL = DeepLinkHandler.generateShareURL(for: listId) {
-                                        let message = "Join my list '\(list?.name ?? "Untitled")' on Dash!"
+                                    guard let joinCode = list?.joinCode else {
+                                        AppLogger.ui.error("Cannot share: list has no joinCode")
+                                        return
+                                    }
+
+                                    if let shareURL = DeepLinkHandler.generateShareURL(for: joinCode) {
+                                        let listName = list?.name ?? "Untitled"
+                                        let message = "Join my list '\(listName)' on Dash! Use code: \(joinCode)"
                                         let activityVC = UIActivityViewController(
                                             activityItems: [message, shareURL], applicationActivities: nil
                                         )

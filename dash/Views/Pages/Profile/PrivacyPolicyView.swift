@@ -15,7 +15,7 @@ struct PrivacyPolicyView: View {
                     .font(.system(size: 28, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Last updated: 28.11.2025")
+                Text("Last updated: 30.11.2025")
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
 
@@ -113,7 +113,13 @@ struct PrivacyPolicyView: View {
                 // Data Retention
                 SectionView(
                     title: "Data Retention",
-                    content: "We retain your data as long as your account is active. If you delete your account, we will delete your personal data within 30 days."
+                    content: """
+                    We retain your data as long as your account is active. 
+
+                    If you delete your account, we will immediately delete your user profile and all lists you created. 
+
+                    For shared lists where you're a member (but not the creator), you will be removed from the list but the list itself will remain for other collaborators.
+                    """
                 )
 
                 // Legal Basis

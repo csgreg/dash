@@ -6,6 +6,7 @@
 //
 
 import FirebaseAuth
+import OSLog
 import SwiftUI
 
 struct ContentView: View {
@@ -16,6 +17,8 @@ struct ContentView: View {
 
     @State private var showJoinAlert = false
     @State private var joinAlertMessage = ""
+    @State private var joinSuccess = false
+    @State private var navigateToHome = false
     @State private var pendingListId: String?
     @State private var listManager: ListManager
 
@@ -41,10 +44,13 @@ struct ContentView: View {
                 OnboardingView()
                     .transition(.opacity)
             } else {
-                MainView()
+                MainView(selectedTab: $navigateToHome)
                     .environmentObject(listManager)
-                    .alert("Join List", isPresented: $showJoinAlert) {
-                        Button("Cancel", role: .cancel) {
+                    .alert(joinSuccess ? "Success!" : "Join List", isPresented: $showJoinAlert) {
+                        Button(joinSuccess ? "View Lists" : "OK", role: joinSuccess ? nil : .cancel) {
+                            if joinSuccess {
+                                navigateToHome = true
+                            }
                             deepLinkHandler.reset()
                         }
                     } message: {
@@ -64,7 +70,7 @@ struct ContentView: View {
     }
 
     private func handleDeepLink(_ deepLink: DeepLink) {
-        guard case let .joinList(listId) = deepLink else { return }
+        guard case let .joinList(joinCode) = deepLink else { return }
 
         // If user is not logged in, show login prompt
         if userId.isEmpty {
@@ -72,10 +78,17 @@ struct ContentView: View {
             return
         }
 
-        // Auto-join the list
-        listManager.joinToList(listId: listId, userId: userId) { message in
+        // Auto-join the list using joinCode
+        listManager.joinToList(joinCode: joinCode, userId: userId) { success, message in
+            joinSuccess = success
             joinAlertMessage = message
             showJoinAlert = true
+
+            // If successful, navigate to home after alert is dismissed
+            if success {
+                AppLogger.ui.info("Join successful, will navigate to home")
+            }
+
             deepLinkHandler.reset()
         }
     }

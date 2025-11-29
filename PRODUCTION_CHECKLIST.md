@@ -24,15 +24,18 @@
 
 ---
 
-### 2. Test Delete Account Flow (10 min)
+### 2. Test Delete Account Flow (15 min)
 
 **Critical Test:**
 1. Create a test account
-2. Go to Profile → Delete Account
-3. Confirm deletion works completely
-4. Verify:
+2. Create some lists (as creator)
+3. Join someone else's shared list (as member)
+4. Go to Profile → Delete Account
+5. Confirm deletion works completely
+6. Verify:
    - User document deleted
-   - All lists deleted
+   - **Owned lists deleted** (where user is creator)
+   - **Shared lists preserved** (user just removed from members)
    - Auth account deleted
    - User signed out automatically
 

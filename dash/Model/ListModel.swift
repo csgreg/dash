@@ -16,4 +16,5 @@ struct Listy: Identifiable {
     var items: [Item]
     var users: [String]
     var creatorId: String?
+    var joinCode: String?
 }

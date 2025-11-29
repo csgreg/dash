@@ -7,6 +7,7 @@
 
 import FirebaseAuth
 import FirebaseFirestore
+import Foundation
 import OSLog
 import SwiftUI
 
@@ -315,7 +316,6 @@ struct ProfileView: View {
         isDeleting = true
 
         let userManager = UserManager(userId: userID)
-        let listManager = ListManager(userId: userID)
 
         // Step 1: Delete user document
         userManager.deleteUserDocument { error in
@@ -324,12 +324,8 @@ struct ProfileView: View {
             }
         }
 
-        // Step 2: Delete all user's lists
-        listManager.deleteAllUserLists { error in
-            if let error = error {
-                AppLogger.database.error("Failed to delete lists: \(error.localizedDescription)")
-            }
-        }
+        // Step 2: Delete all user's lists (query directly - no ListManager needed)
+        deleteAllUserListsDirectly()
 
         // Step 3: Delete user from Firebase Auth
         userManager.deleteUserAccount { error in
@@ -344,6 +340,33 @@ struct ProfileView: View {
                 self.signOut()
             }
         }
+    }
+
+    private func deleteAllUserListsDirectly() {
+        let db = Firestore.firestore()
+
+        db.collection("lists")
+            .whereField("users", arrayContains: userID)
+            .getDocuments { snapshot, _ in
+                guard let documents = snapshot?.documents else { return }
+
+                for document in documents {
+                    let data = document.data()
+                    let creatorId = data["creatorId"] as? String
+
+                    if creatorId == self.userID {
+                        // Delete owned lists
+                        document.reference.delete()
+                        AppLogger.database.info("Deleted owned list during account deletion")
+                    } else {
+                        // Remove user from shared lists
+                        var users = data["users"] as? [String] ?? []
+                        users.removeAll { $0 == self.userID }
+                        document.reference.updateData(["users": users])
+                        AppLogger.database.info("Left shared list during account deletion")
+                    }
+                }
+            }
     }
 
     func signOut() {
