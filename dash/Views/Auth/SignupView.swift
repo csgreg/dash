@@ -18,6 +18,8 @@ struct SignupView: View {
     @State private var signUpFail = false
     @State private var failTitle = ""
     @State private var loading: Bool = false
+    @State private var acceptedTerms: Bool = false
+    @State private var showPrivacyPolicy = false
     @StateObject private var googleSignInManager = GoogleSignInManager()
 
     var body: some View {
@@ -111,10 +113,54 @@ struct SignupView: View {
             }
             .padding(.horizontal, 24)
 
+            // Terms & Privacy acceptance
+            HStack(alignment: .center, spacing: 8) {
+                Button(action: {
+                    acceptedTerms.toggle()
+                }) {
+                    Image(systemName: acceptedTerms ? "checkmark.square.fill" : "square")
+                        .font(.system(size: 20))
+                        .foregroundColor(acceptedTerms ? Color("purple") : .gray)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                HStack(spacing: 4) {
+                    Text("I agree to the")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+
+                    Button(action: {
+                        showPrivacyPolicy = true
+                    }) {
+                        Text("Privacy Policy")
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                            .underline()
+                    }
+
+                    Text("and")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+
+                    Link("Apple's Terms", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+                        .underline()
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+
             Spacer()
 
             // create account button
             Button(action: {
+                if !acceptedTerms {
+                    signUpFail = true
+                    failTitle = "Please accept the Terms and Privacy Policy to continue."
+                    return
+                }
+
                 loading = true
                 if !email.isValidEmail() {
                     signUpFail = true
@@ -171,7 +217,8 @@ struct SignupView: View {
             }
             .modifier(GlassEffectIfAvailable())
             .padding(.horizontal, 24)
-            .disabled(loading)
+            .disabled(loading || !acceptedTerms)
+            .opacity(acceptedTerms ? 1.0 : 0.5)
             .alert(isPresented: $signUpFail) {
                 Alert(
                     title: Text("Failed to sign up"),
@@ -199,6 +246,14 @@ struct SignupView: View {
                 }
             }
             .padding(.bottom, 40)
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            NavigationView {
+                PrivacyPolicyView()
+                    .navigationBarItems(trailing: Button("Done") {
+                        showPrivacyPolicy = false
+                    })
+            }
         }
     }
 }

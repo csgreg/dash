@@ -6,6 +6,7 @@
 //
 
 import FirebaseFirestore
+import OSLog
 import SwiftUI
 
 struct FeedbackView: View {
@@ -193,9 +194,9 @@ struct FeedbackView: View {
             if let error = error {
                 errorMessage = "Failed to submit feedback. Please try again."
                 showErrorAlert = true
-                print("❌ Error submitting feedback: \(error)")
+                AppLogger.database.error("Failed to submit feedback: \(error.localizedDescription)")
             } else {
-                print("✅ Feedback submitted successfully!")
+                AppLogger.database.notice("Feedback submitted")
                 showSuccessAlert = true
             }
         }

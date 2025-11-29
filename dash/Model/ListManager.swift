@@ -8,6 +8,7 @@
 import FirebaseCore
 import FirebaseFirestore
 import Foundation
+import OSLog
 
 /// Manages list data and operations with Firebase Firestore
 class ListManager: ObservableObject {
@@ -23,17 +24,20 @@ class ListManager: ObservableObject {
 
     init(userId: String) {
         self.userId = userId
+        AppLogger.database.info("ListManager initialized")
         Task {
             await fetchLists()
         }
     }
 
     deinit {
+        AppLogger.database.debug("ListManager deallocated, removing listeners")
         listenerRegistration?.remove()
         itemListeners.values.forEach { $0.remove() }
     }
 
     func fetchLists() async {
+        AppLogger.database.info("Setting up lists listener")
         listenerRegistration?.remove()
 
         listenerRegistration = firestore.collection("lists").whereField("users", arrayContains: userId)
@@ -42,7 +46,7 @@ class ListManager: ObservableObject {
 
                 guard let snapshot = querySnapshot else {
                     if let error = error {
-                        print("Error fetching documents: \(error.localizedDescription)")
+                        AppLogger.database.error("Failed to fetch lists: \(error.localizedDescription)")
                     }
                     return
                 }
@@ -57,9 +61,8 @@ class ListManager: ObservableObject {
                         // Parse and add new list (without items)
                         let list = self.parseList(documentID: documentID, data: data)
                         self.lists.append(list)
-                        print("Added list: \(list.name)")
-                        print("Members for \(documentID): \(list.users)")
-                        print("Current user: \(self.userId), contains? \(list.users.contains(self.userId))")
+                        AppLogger.database.notice("List added: \(list.name, privacy: .public)")
+                        AppLogger.database.debug("List members: \(list.users.count)")
                         // Start listening to items subcollection
                         self.listenToItems(for: documentID)
 
@@ -76,7 +79,7 @@ class ListManager: ObservableObject {
                             self.lists[index].color = color
                             self.lists[index].users = users
                             self.lists[index].creatorId = creatorId
-                            print("Modified list: \(name)")
+                            AppLogger.database.info("List modified: \(name, privacy: .public)")
                         }
 
                     case .removed:
@@ -84,7 +87,7 @@ class ListManager: ObservableObject {
                         self.itemListeners[documentID]?.remove()
                         self.itemListeners.removeValue(forKey: documentID)
                         self.lists.removeAll(where: { $0.id == documentID })
-                        print("Removed list: \(documentID)")
+                        AppLogger.database.notice("List removed")
                     }
                 }
             }
@@ -106,9 +109,11 @@ class ListManager: ObservableObject {
     private func listenToItems(for listId: String) {
         // Prevent duplicate listeners
         if itemListeners[listId] != nil {
+            AppLogger.database.debug("Items listener already exists for list")
             return
         }
 
+        AppLogger.database.debug("Setting up items listener for list")
         let itemsRef = firestore.collection("lists").document(listId).collection("items")
 
         let listener = itemsRef.addSnapshotListener { [weak self] querySnapshot, error in
@@ -116,10 +121,7 @@ class ListManager: ObservableObject {
 
             guard let snapshot = querySnapshot else {
                 if let error = error {
-                    print("Error fetching items: \(error.localizedDescription)")
-                    if let list = self.lists.first(where: { $0.id == listId }) {
-                        print("Current cached members for \(listId): \(list.users)")
-                    }
+                    AppLogger.database.error("Failed to fetch items: \(error.localizedDescription)")
                 }
                 return
             }
@@ -183,9 +185,9 @@ class ListManager: ObservableObject {
 
         firestore.collection("lists").document(uid).setData(data) { err in
             if let err = err {
-                print("⚠️ Create list sync error: \(err.localizedDescription)")
+                AppLogger.network.error("Create list sync error: \(err.localizedDescription)")
             } else {
-                print("✅ List synced to server")
+                AppLogger.network.info("List synced to server")
             }
         }
     }
@@ -215,9 +217,9 @@ class ListManager: ObservableObject {
 
         firestore.collection("lists").document(listId).updateData(data) { err in
             if let err = err {
-                print("⚠️ Update list sync error: \(err.localizedDescription)")
+                AppLogger.network.error("Update list sync error: \(err.localizedDescription)")
             } else {
-                print("✅ List update synced to server")
+                AppLogger.network.info("List update synced to server")
             }
         }
     }
@@ -239,16 +241,16 @@ class ListManager: ObservableObject {
                         "users": users,
                     ]) { err in
                         if let err = err {
-                            print("Error updating document: \(err)")
+                            AppLogger.database.error("Failed to join list: \(err.localizedDescription)")
                             completion("Failed to join, check your internet connection or try again!")
                         } else {
-                            print("Document successfully updated!")
+                            AppLogger.database.notice("User joined list")
                             completion("Successfully joined the list!")
                         }
                     }
                 }
             } else {
-                print("Document does not exist")
+                AppLogger.database.warning("List does not exist")
                 completion("This list does not exist!")
             }
         }
@@ -264,9 +266,9 @@ class ListManager: ObservableObject {
             "order": item.order,
         ]) { err in
             if let err = err {
-                print("Error adding item: \(err)")
+                AppLogger.database.error("Failed to add item: \(err.localizedDescription)")
             } else {
-                print("Item successfully added!")
+                AppLogger.database.notice("Item added")
                 // Increment user's total items created count
                 self.incrementUserItemCount()
             }
@@ -316,16 +318,16 @@ class ListManager: ObservableObject {
         // Commit item deletions first
         batch.commit { error in
             if let error = error {
-                print("Error deleting items: \(error)")
+                AppLogger.database.error("Failed to delete items: \(error.localizedDescription)")
             } else {
-                print("All items deleted, now deleting list document")
+                AppLogger.database.info("All items deleted, deleting list document")
 
                 // Now delete the list document itself
                 self.firestore.collection("lists").document(listId).delete { err in
                     if let err = err {
-                        print("Error removing list document: \(err)")
+                        AppLogger.database.error("Failed to remove list document: \(err.localizedDescription)")
                     } else {
-                        print("List document successfully removed!")
+                        AppLogger.database.notice("List document removed")
                     }
                 }
             }
@@ -345,14 +347,14 @@ class ListManager: ObservableObject {
                         "users": users,
                     ]) { err in
                         if let err = err {
-                            print("Error leaving list: \(err)")
+                            AppLogger.database.error("Failed to leave list: \(err.localizedDescription)")
                         } else {
-                            print("Successfully left the list!")
+                            AppLogger.database.notice("User left list")
                         }
                     }
                 }
             } else {
-                print("List not found")
+                AppLogger.database.warning("List not found")
             }
         }
     }
@@ -365,9 +367,9 @@ class ListManager: ObservableObject {
             "done": true,
         ]) { error in
             if let error = error {
-                print("Error marking item as done: \(error)")
+                AppLogger.database.error("Failed to mark item as done: \(error.localizedDescription)")
             } else {
-                print("Item marked as done!")
+                AppLogger.database.debug("Item marked as done")
             }
         }
     }
@@ -380,9 +382,9 @@ class ListManager: ObservableObject {
             "done": false,
         ]) { error in
             if let error = error {
-                print("Error marking item as undone: \(error)")
+                AppLogger.database.error("Failed to mark item as undone: \(error.localizedDescription)")
             } else {
-                print("Item marked as undone!")
+                AppLogger.database.debug("Item marked as undone")
             }
         }
     }
@@ -395,9 +397,9 @@ class ListManager: ObservableObject {
             "text": newText,
         ]) { error in
             if let error = error {
-                print("Error updating item text: \(error)")
+                AppLogger.database.error("Failed to update item text: \(error.localizedDescription)")
             } else {
-                print("Item text updated!")
+                AppLogger.database.debug("Item text updated")
             }
         }
     }
@@ -408,9 +410,9 @@ class ListManager: ObservableObject {
 
         itemRef.delete { err in
             if let err = err {
-                print("Error deleting item: \(err)")
+                AppLogger.database.error("Failed to delete item: \(err.localizedDescription)")
             } else {
-                print("Item successfully deleted!")
+                AppLogger.database.info("Item deleted")
             }
         }
     }
@@ -423,9 +425,9 @@ class ListManager: ObservableObject {
             "order": newOrder,
         ]) { err in
             if let err = err {
-                print("Error updating item order: \(err)")
+                AppLogger.database.error("Failed to update item order: \(err.localizedDescription)")
             } else {
-                print("Item order updated!")
+                AppLogger.database.debug("Item order updated")
             }
         }
     }
@@ -441,9 +443,9 @@ class ListManager: ObservableObject {
 
         batch.commit { error in
             if let error = error {
-                print("Error updating item orders: \(error)")
+                AppLogger.database.error("Failed to update item orders: \(error.localizedDescription)")
             } else {
-                print("All item orders updated in batch!")
+                AppLogger.database.info("Batch item orders updated")
             }
         }
     }
@@ -462,9 +464,9 @@ class ListManager: ObservableObject {
 
         batch.commit { error in
             if let error = error {
-                print("Error marking all items as done: \(error)")
+                AppLogger.database.error("Failed to mark all items as done: \(error.localizedDescription)")
             } else {
-                print("All items marked as done!")
+                AppLogger.database.notice("All items marked as done")
             }
         }
     }
@@ -483,9 +485,9 @@ class ListManager: ObservableObject {
 
         batch.commit { error in
             if let error = error {
-                print("Error marking all items as undone: \(error)")
+                AppLogger.database.error("Failed to mark all items as undone: \(error.localizedDescription)")
             } else {
-                print("All items marked as undone!")
+                AppLogger.database.notice("All items marked as undone")
             }
         }
     }
@@ -504,9 +506,9 @@ class ListManager: ObservableObject {
 
         batch.commit { error in
             if let error = error {
-                print("Error clearing all items: \(error)")
+                AppLogger.database.error("Failed to clear all items: \(error.localizedDescription)")
             } else {
-                print("All items cleared!")
+                AppLogger.database.notice("All items cleared")
             }
         }
     }
@@ -527,9 +529,9 @@ class ListManager: ObservableObject {
 
         batch.commit { error in
             if let error = error {
-                print("Error removing completed items: \(error)")
+                AppLogger.database.error("Failed to remove completed items: \(error.localizedDescription)")
             } else {
-                print("Completed items removed!")
+                AppLogger.database.notice("Completed items removed")
             }
         }
     }
@@ -539,7 +541,7 @@ class ListManager: ObservableObject {
             .whereField("users", arrayContains: userId)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    print("❌ Error fetching user lists: \(error)")
+                    AppLogger.database.error("Failed to fetch user lists: \(error.localizedDescription)")
                     completion(error)
                     return
                 }
@@ -569,10 +571,10 @@ class ListManager: ObservableObject {
 
                 batch.commit { error in
                     if let error = error {
-                        print("❌ Error deleting lists: \(error)")
+                        AppLogger.database.error("Failed to delete lists: \(error.localizedDescription)")
                         completion(error)
                     } else {
-                        print("✅ All lists deleted")
+                        AppLogger.database.notice("All user lists deleted")
                         completion(nil)
                     }
                 }

@@ -8,6 +8,7 @@
 import FirebaseAuth
 import FirebaseCore
 import GoogleSignIn
+import OSLog
 import SwiftUI
 
 class GoogleSignInManager: ObservableObject {
@@ -17,9 +18,12 @@ class GoogleSignInManager: ObservableObject {
     func signInWithGoogle(completion: @escaping (Result<String, Error>) -> Void) {
         guard let clientID = FirebaseApp.app()?.options.clientID else {
             let error = NSError(domain: "GoogleSignIn", code: -1, userInfo: [NSLocalizedDescriptionKey: "Missing Firebase Client ID"])
+            AppLogger.auth.error("Google Sign-In: Missing Firebase Client ID")
             completion(.failure(error))
             return
         }
+
+        AppLogger.auth.info("Initiating Google Sign-In")
 
         // Create Google Sign In configuration object
         let config = GIDConfiguration(clientID: clientID)
@@ -48,9 +52,11 @@ class GoogleSignInManager: ObservableObject {
                     // If the user cancelled the Google sign-in flow, do not treat it as an error
                     let nsError = error as NSError
                     if nsError.code == GIDSignInError.canceled.rawValue {
+                        AppLogger.auth.debug("Google Sign-In cancelled by user")
                         return
                     }
 
+                    AppLogger.auth.error("Google Sign-In failed: \(error.localizedDescription)")
                     self.errorMessage = error.localizedDescription
                     completion(.failure(error))
                     return
@@ -71,15 +77,18 @@ class GoogleSignInManager: ObservableObject {
                 // Authenticate with Firebase
                 Auth.auth().signIn(with: credential) { authResult, error in
                     if let error = error {
+                        AppLogger.auth.error("Google Sign-In Firebase auth failed: \(error.localizedDescription)")
                         self.errorMessage = error.localizedDescription
                         completion(.failure(error))
                         return
                     }
 
                     if let uid = authResult?.user.uid {
+                        AppLogger.auth.notice("Google Sign-In successful")
                         completion(.success(uid))
                     } else {
                         let error = NSError(domain: "GoogleSignIn", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get user ID"])
+                        AppLogger.auth.error("Google Sign-In failed to get user ID")
                         self.errorMessage = error.localizedDescription
                         completion(.failure(error))
                     }

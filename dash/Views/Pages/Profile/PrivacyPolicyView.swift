@@ -15,7 +15,7 @@ struct PrivacyPolicyView: View {
                     .font(.system(size: 28, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Last updated: \(getCurrentDate())")
+                Text("Last updated: 28.11.2025")
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
 
@@ -36,6 +36,8 @@ struct PrivacyPolicyView: View {
                     • Lists and items you create
                     • Usage statistics (items created, achievements)
                     • Device information (for app functionality)
+                    • Feedback submissions (optional email, message, type, timestamp)
+                    • Authentication data from Apple or Google (when using third-party sign-in)
                     """
                 )
 
@@ -56,13 +58,42 @@ struct PrivacyPolicyView: View {
                 // Data Storage
                 SectionView(
                     title: "Data Storage",
-                    content: "Your data is stored securely using Firebase (Google Cloud Platform). We implement appropriate security measures to protect your personal information."
+                    content: "Your data is stored securely using Firebase (Google Cloud Platform). We implement appropriate security measures to protect your personal information.\n\nWe also cache data locally on your device for offline access. This cached data syncs automatically when you're online and is deleted when you uninstall the app or delete your account."
+                )
+
+                // Third-Party Services
+                SectionView(
+                    title: "Third-Party Services",
+                    content: """
+                    We use the following third-party services to provide our app:
+
+                    Firebase (Google): Authentication, database, and cloud storage
+                    • Privacy Policy: firebase.google.com/support/privacy
+
+                    Sign in with Apple: For authentication
+                    • Privacy Policy: apple.com/legal/privacy
+
+                    Google Sign-In: For authentication
+                    • Privacy Policy: policies.google.com/privacy
+
+                    These services may collect device and usage information as described in their privacy policies.
+                    """
                 )
 
                 // Data Sharing
                 SectionView(
                     title: "Data Sharing",
-                    content: "We do not sell, trade, or rent your personal data to third parties. Your data is only shared with collaborators on lists you explicitly choose to share."
+                    content: """
+                    We do not sell, trade, or rent your personal data to third parties.
+
+                    Your data may be shared in these limited circumstances:
+
+                    • List Collaborators: When you share a list, collaborators can view the list name, items, and your user ID (not your email or personal information)
+
+                    • Service Providers: Firebase/Google processes your data to provide cloud storage and authentication
+
+                    • Legal Requirements: We may disclose data if required by law or to protect our rights
+                    """
                 )
 
                 // Your Rights
@@ -83,6 +114,12 @@ struct PrivacyPolicyView: View {
                 SectionView(
                     title: "Data Retention",
                     content: "We retain your data as long as your account is active. If you delete your account, we will delete your personal data within 30 days."
+                )
+
+                // Legal Basis
+                SectionView(
+                    title: "Legal Basis (EU Users)",
+                    content: "For users in the European Union, we process your data based on your consent (provided when you accept this Privacy Policy) and to fulfill our contract to provide the app service."
                 )
 
                 // Contact

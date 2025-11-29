@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 import SwiftUI
 
 struct Achievement: Identifiable {
@@ -19,7 +20,13 @@ struct Achievement: Identifiable {
 }
 
 class RewardsManager: ObservableObject {
-    @Published var totalItemsCreated: Int = 0
+    @Published var totalItemsCreated: Int = 0 {
+        didSet {
+            checkForNewAchievements(oldValue: oldValue)
+        }
+    }
+
+    private var unlockedAchievements: Set<String> = []
 
     // Achievement tiers with unlockable colors
     let achievements: [Achievement] = [
@@ -106,10 +113,27 @@ class RewardsManager: ObservableObject {
 
     // Fetch total created items from user document
     func fetchUserItemCount(from listManager: ListManager) {
+        AppLogger.rewards.debug("Fetching user item count for rewards")
         listManager.fetchUserItemCount { count in
             DispatchQueue.main.async {
                 self.totalItemsCreated = count
+                AppLogger.rewards.info("Item count loaded: \(count, privacy: .public)")
             }
+        }
+    }
+
+    // Check if user unlocked new achievements
+    private func checkForNewAchievements(oldValue: Int) {
+        let previousAchievement = achievements.last(where: { oldValue >= $0.requiredItems })
+        let currentAchievement = achievements.last(where: { totalItemsCreated >= $0.requiredItems })
+
+        // Check if we crossed into a new achievement tier
+        if let current = currentAchievement,
+           previousAchievement?.id != current.id,
+           !unlockedAchievements.contains(current.id)
+        {
+            unlockedAchievements.insert(current.id)
+            AppLogger.rewards.notice("Achievement unlocked: \(current.title, privacy: .public) - \(current.colorDisplayName, privacy: .public) color")
         }
     }
 }

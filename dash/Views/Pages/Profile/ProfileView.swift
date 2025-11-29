@@ -7,6 +7,7 @@
 
 import FirebaseAuth
 import FirebaseFirestore
+import OSLog
 import SwiftUI
 
 struct ProfileView: View {
@@ -294,9 +295,9 @@ struct ProfileView: View {
         let userManager = UserManager(userId: userID)
         userManager.saveUserFirstName(firstName) { error in
             if let error = error {
-                print("❌ Error saving first name: \(error)")
+                AppLogger.database.error("Failed to save first name: \(error.localizedDescription)")
             } else {
-                print("✅ First name saved successfully!")
+                AppLogger.database.notice("First name saved")
             }
         }
     }
@@ -319,14 +320,14 @@ struct ProfileView: View {
         // Step 1: Delete user document
         userManager.deleteUserDocument { error in
             if let error = error {
-                print("❌ Error deleting user document: \(error)")
+                AppLogger.database.error("Failed to delete user document: \(error.localizedDescription)")
             }
         }
 
         // Step 2: Delete all user's lists
         listManager.deleteAllUserLists { error in
             if let error = error {
-                print("❌ Error deleting lists: \(error)")
+                AppLogger.database.error("Failed to delete lists: \(error.localizedDescription)")
             }
         }
 
@@ -335,10 +336,10 @@ struct ProfileView: View {
             self.isDeleting = false
 
             if let error = error {
-                print("❌ Error deleting user account: \(error)")
+                AppLogger.auth.error("Failed to delete user account: \(error.localizedDescription)")
                 // Show error alert if needed
             } else {
-                print("✅ User account deleted successfully")
+                AppLogger.auth.notice("User account deleted")
                 // Sign out to return to login screen
                 self.signOut()
             }
@@ -353,7 +354,7 @@ struct ProfileView: View {
                 userID = ""
             }
         } catch let signOutError as NSError {
-            print("Error signing out: \(signOutError)")
+            AppLogger.auth.error("Failed to sign out: \(signOutError.localizedDescription)")
         }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import FirebaseAuth
+import OSLog
 import SwiftUI
 
 struct LoginView: View {
@@ -17,6 +18,7 @@ struct LoginView: View {
     @State private var signInFail: Bool = false
     @State private var loading: Bool = false
     @State private var showForgotPassword: Bool = false
+    @State private var showPrivacyPolicy = false
     @StateObject private var googleSignInManager = GoogleSignInManager()
     @StateObject private var appleSignInManager = AppleSignInManager()
 
@@ -112,12 +114,15 @@ struct LoginView: View {
             // sign in button
             Button(action: {
                 loading = true
+                AppLogger.auth.info("Email/password sign-in attempt")
                 Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
-                    if error != nil {
+                    if let error = error {
+                        AppLogger.auth.error("Email/password sign-in failed: \(error.localizedDescription)")
                         signInFail = true
                     }
 
                     if let authResult = authResult {
+                        AppLogger.auth.notice("Email/password sign-in successful")
                         withAnimation {
                             userID = authResult.user.uid
                         }
@@ -183,7 +188,7 @@ struct LoginView: View {
                                 }
                             case let .failure(error):
                                 signInFail = true
-                                print("Apple Sign-In Error: \(error.localizedDescription)")
+                                AppLogger.auth.error("Apple Sign-In failed: \(error.localizedDescription)")
                             }
                         }
                     },
@@ -200,7 +205,7 @@ struct LoginView: View {
                             }
                         case let .failure(error):
                             signInFail = true
-                            print("Google Sign-In Error: \(error.localizedDescription)")
+                            AppLogger.auth.error("Google Sign-In failed: \(error.localizedDescription)")
                         }
                     }
                 }) {
@@ -249,7 +254,37 @@ struct LoginView: View {
                         .font(.system(size: 15, weight: .bold))
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, 32)
+
+            // Privacy & Terms links
+            HStack(spacing: 4) {
+                Button(action: {
+                    showPrivacyPolicy = true
+                }) {
+                    Text("Privacy Policy")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .underline()
+                }
+
+                Text("•")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+
+                Link("Apple's Terms", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .underline()
+            }
+            .padding(.bottom, 8)
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            NavigationView {
+                PrivacyPolicyView()
+                    .navigationBarItems(trailing: Button("Done") {
+                        showPrivacyPolicy = false
+                    })
+            }
         }
         .overlay(
             Group {

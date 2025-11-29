@@ -8,6 +8,7 @@
 import FirebaseAuth
 import FirebaseFirestore
 import Foundation
+import OSLog
 
 class UserManager {
     private let firestore = Firestore.firestore()
@@ -40,10 +41,10 @@ class UserManager {
             "userId": userId,
         ], merge: true) { error in
             if let error = error {
-                print("❌ Error saving first name: \(error)")
+                AppLogger.database.error("Failed to save first name: \(error.localizedDescription)")
                 completion(error)
             } else {
-                print("✅ First name saved successfully!")
+                AppLogger.database.notice("First name saved")
                 completion(nil)
             }
         }
@@ -54,16 +55,16 @@ class UserManager {
     func incrementItemCount() {
         let userRef = firestore.collection("users").document(userId)
 
-        print("🎯 Incrementing item count for user: \(userId)")
+        AppLogger.database.debug("Incrementing item count")
 
         userRef.setData([
             "totalItemsCreated": FieldValue.increment(Int64(1)),
             "userId": userId,
         ], merge: true) { error in
             if let error = error {
-                print("❌ Error incrementing item count: \(error)")
+                AppLogger.database.error("Failed to increment item count: \(error.localizedDescription)")
             } else {
-                print("✅ Item count incremented successfully!")
+                AppLogger.database.info("Item count incremented")
             }
         }
     }
@@ -71,15 +72,15 @@ class UserManager {
     func fetchUserItemCount(completion: @escaping (Int) -> Void) {
         let userRef = firestore.collection("users").document(userId)
 
-        print("📊 Fetching item count for user: \(userId)")
+        AppLogger.database.debug("Fetching item count")
 
         userRef.getDocument { document, _ in
             if let document = document, document.exists {
                 let count = document.data()?["totalItemsCreated"] as? Int ?? 0
-                print("📈 Fetched count: \(count)")
+                AppLogger.database.info("Fetched item count: \(count, privacy: .public)")
                 completion(count)
             } else {
-                print("⚠️ User document doesn't exist yet, returning 0")
+                AppLogger.database.debug("User document doesn't exist, returning 0")
                 completion(0)
             }
         }
@@ -92,10 +93,10 @@ class UserManager {
 
         userRef.delete { error in
             if let error = error {
-                print("❌ Error deleting user document: \(error)")
+                AppLogger.database.error("Failed to delete user document: \(error.localizedDescription)")
                 completion(error)
             } else {
-                print("✅ User document deleted")
+                AppLogger.database.notice("User document deleted")
                 completion(nil)
             }
         }
@@ -109,10 +110,10 @@ class UserManager {
 
         user.delete { error in
             if let error = error {
-                print("❌ Error deleting user account: \(error)")
+                AppLogger.auth.error("Failed to delete user account: \(error.localizedDescription)")
                 completion(error)
             } else {
-                print("✅ User account deleted successfully")
+                AppLogger.auth.notice("User account deleted")
                 completion(nil)
             }
         }

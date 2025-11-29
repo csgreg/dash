@@ -1,6 +1,7 @@
 import AuthenticationServices
 import CryptoKit
 import FirebaseAuth
+import OSLog
 import SwiftUI
 import UIKit
 
@@ -13,6 +14,8 @@ class AppleSignInManager: NSObject, ObservableObject {
 
     func signInWithApple(completion: @escaping (Result<String, Error>) -> Void) {
         self.completion = completion
+
+        AppLogger.auth.info("Initiating Apple Sign-In")
 
         let nonce = randomNonceString()
         currentNonce = nonce
@@ -92,15 +95,18 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
         Auth.auth().signIn(with: credential) { authResult, error in
             if let error = error {
+                AppLogger.auth.error("Apple Sign-In Firebase auth failed: \(error.localizedDescription)")
                 self.errorMessage = error.localizedDescription
                 completion(.failure(error))
                 return
             }
 
             if let uid = authResult?.user.uid {
+                AppLogger.auth.notice("Apple Sign-In successful")
                 completion(.success(uid))
             } else {
                 let error = NSError(domain: "AppleSignIn", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get user ID"])
+                AppLogger.auth.error("Apple Sign-In failed to get user ID")
                 self.errorMessage = error.localizedDescription
                 completion(.failure(error))
             }
@@ -112,9 +118,11 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
         // If the user cancelled the Apple sign-in sheet, do not treat it as an error
         if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+            AppLogger.auth.debug("Apple Sign-In cancelled by user")
             return
         }
 
+        AppLogger.auth.error("Apple Sign-In authorization failed: \(error.localizedDescription)")
         errorMessage = error.localizedDescription
         completion?(.failure(error))
     }

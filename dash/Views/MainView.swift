@@ -6,6 +6,7 @@
 //
 
 import FirebaseAuth
+import OSLog
 import SwiftUI
 
 struct MainView: View {
@@ -44,6 +45,24 @@ struct MainView: View {
                 .tag(3)
         }
         .preferredColorScheme(.light)
+        .onChange(of: selectedTab) { _, newTab in
+            logTabChange(newTab)
+        }
+        .onAppear {
+            AppLogger.ui.notice("App session started")
+        }
+    }
+
+    private func logTabChange(_ tab: Int) {
+        let tabName: String
+        switch tab {
+        case 0: tabName = "Lists"
+        case 1: tabName = "Create"
+        case 2: tabName = "Rewards"
+        case 3: tabName = "Profile"
+        default: tabName = "Unknown"
+        }
+        AppLogger.ui.debug("Tab changed to: \(tabName, privacy: .public)")
     }
 }
 

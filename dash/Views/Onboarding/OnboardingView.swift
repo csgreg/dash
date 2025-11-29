@@ -5,6 +5,7 @@
 //  Created for onboarding flow
 //
 
+import OSLog
 import SwiftUI
 
 struct OnboardingView: View {
@@ -116,7 +117,7 @@ struct OnboardingView: View {
             let userManager = UserManager(userId: userID)
             userManager.saveUserFirstName(firstName) { error in
                 if let error = error {
-                    print("Error saving first name: \(error)")
+                    AppLogger.database.error("Failed to save first name: \(error.localizedDescription)")
                 }
             }
         }
