@@ -154,8 +154,8 @@ struct LoginView: View {
             .disabled(loading)
             .alert(isPresented: $signInFail) {
                 Alert(
-                    title: Text("Failed to log in"),
-                    message: Text("Oops! Incorrect email or password.")
+                    title: Text("Login Failed"),
+                    message: Text("Incorrect email or password. Please try again.")
                 )
             }
 

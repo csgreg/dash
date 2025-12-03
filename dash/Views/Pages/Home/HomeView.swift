@@ -63,6 +63,9 @@ struct HomeView: View {
                 }
             }
             .onAppear {
+                // Load cached name immediately for instant display
+                firstName = UserManager.getCachedFirstName()
+                // Then fetch from Firestore to sync any updates
                 loadUserName()
                 activeListId = nil
             }

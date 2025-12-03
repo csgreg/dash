@@ -116,12 +116,12 @@ struct ForgotPasswordView: View {
             .padding(.horizontal, 32)
             .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
         }
-        .alert("Success", isPresented: $showSuccessAlert) {
+        .alert("Password Reset Sent", isPresented: $showSuccessAlert) {
             Button("OK") {
                 isPresented = false
             }
         } message: {
-            Text("Password reset email has been sent to \(email). Please check your inbox.")
+            Text("We've sent a password reset link to \(email). Please check your inbox or spam folder.")
         }
         .alert("Error", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) {}

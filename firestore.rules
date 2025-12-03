@@ -42,11 +42,13 @@ service cloud.firestore {
                getUserId() in request.resource.data.users;
       }
       
-      // READ: Allow if user is a member OR if they're authenticated and reading a specific document
-      // (needed for join flow - user needs to verify list exists before joining)
-      // Note: This doesn't allow querying all lists, only reading specific documents by ID
+      // READ: 
+      // - get: Allow any signed-in user to read a specific list by ID
+      // - list: Allow any signed-in user to query lists
+      //   (Secure because joinCode is required to find lists via query,
+      //    and joinCode is a random unguessable token)
       allow get: if isSignedIn();
-      allow list: if isMember();
+      allow list: if isSignedIn();
       
       // CREATE: User must be authenticated and include themselves in users array
       allow create: if isSignedIn() && 

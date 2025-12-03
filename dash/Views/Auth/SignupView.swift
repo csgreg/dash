@@ -164,13 +164,13 @@ struct SignupView: View {
                 loading = true
                 if !email.isValidEmail() {
                     signUpFail = true
-                    failTitle = "Please type a correct email address!"
+                    failTitle = "Please enter a valid email address."
                     loading = false
                     return
                 }
                 if !password.isValidPassword() {
                     signUpFail = true
-                    failTitle = "Password must be at least 8 characters long!"
+                    failTitle = "Password must be at least 8 characters long."
                     loading = false
                     return
                 }
@@ -184,7 +184,7 @@ struct SignupView: View {
                 Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
                     if error != nil {
                         signUpFail = true
-                        failTitle = "Please try again later or check your internet connection!"
+                        failTitle = "Unable to create account. Please check your internet connection and try again."
                         loading = false
                         return
                     }
@@ -221,7 +221,7 @@ struct SignupView: View {
             .opacity(acceptedTerms ? 1.0 : 0.5)
             .alert(isPresented: $signUpFail) {
                 Alert(
-                    title: Text("Failed to sign up"),
+                    title: Text("Sign Up Failed"),
                     message: Text(failTitle)
                 )
             }

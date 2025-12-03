@@ -9,6 +9,7 @@ import FirebaseAuth
 import FirebaseFirestore
 import Foundation
 import OSLog
+import SwiftUI
 
 class UserManager {
     private let firestore = Firestore.firestore()
@@ -16,6 +17,25 @@ class UserManager {
 
     init(userId: String) {
         self.userId = userId
+    }
+
+    // MARK: - Local Cache Helpers
+
+    /// Get cached first name from AppStorage
+    static func getCachedFirstName() -> String {
+        return UserDefaults.standard.string(forKey: "cachedFirstName") ?? ""
+    }
+
+    /// Save first name to AppStorage for instant access
+    static func cacheFirstName(_ name: String) {
+        UserDefaults.standard.set(name, forKey: "cachedFirstName")
+        AppLogger.database.debug("Cached first name locally")
+    }
+
+    /// Clear cached first name (useful on logout)
+    static func clearCachedFirstName() {
+        UserDefaults.standard.removeObject(forKey: "cachedFirstName")
+        AppLogger.database.debug("Cleared cached first name")
     }
 
     // MARK: - User Profile
@@ -26,6 +46,8 @@ class UserManager {
         userRef.getDocument { document, _ in
             if let document = document, document.exists {
                 let firstName = document.data()?["firstName"] as? String ?? ""
+                // Cache the fetched name for instant access next time
+                UserManager.cacheFirstName(firstName)
                 completion(firstName)
             } else {
                 completion("")
@@ -34,6 +56,9 @@ class UserManager {
     }
 
     func saveUserFirstName(_ firstName: String, completion: @escaping (Error?) -> Void) {
+        // Cache immediately for instant access
+        UserManager.cacheFirstName(firstName)
+
         let userRef = firestore.collection("users").document(userId)
 
         userRef.setData([
@@ -44,7 +69,7 @@ class UserManager {
                 AppLogger.database.error("Failed to save first name: \(error.localizedDescription)")
                 completion(error)
             } else {
-                AppLogger.database.notice("First name saved")
+                AppLogger.database.notice("First name saved to Firestore")
                 completion(nil)
             }
         }

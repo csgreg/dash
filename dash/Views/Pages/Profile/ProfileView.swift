@@ -285,7 +285,10 @@ struct ProfileView: View {
             userEmail = user.email ?? "No email"
         }
 
-        // Load first name from Firestore using UserManager
+        // Load cached first name immediately for instant display
+        firstName = UserManager.getCachedFirstName()
+
+        // Then fetch from Firestore to sync any updates
         let userManager = UserManager(userId: userID)
         userManager.fetchUserFirstName { name in
             self.firstName = name
@@ -373,6 +376,8 @@ struct ProfileView: View {
         let firebaseAuth = Auth.auth()
         do {
             try firebaseAuth.signOut()
+            // Clear cached user data on logout
+            UserManager.clearCachedFirstName()
             withAnimation {
                 userID = ""
             }

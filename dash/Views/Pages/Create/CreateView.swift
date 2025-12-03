@@ -93,7 +93,7 @@ struct CreateView: View {
 
     private var descriptionText: some View {
         Text(
-            "Craft customized lists for any purpose, share a unique code for seamless collaboration."
+            "Create customized lists for any purpose and invite others to collaborate."
         )
         .font(.system(size: 15, weight: .regular))
         .foregroundColor(Color("dark-gray"))
