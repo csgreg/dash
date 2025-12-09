@@ -103,6 +103,27 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
             if let uid = authResult?.user.uid {
                 AppLogger.auth.notice("Apple Sign-In successful")
+
+                // Save user's name from Apple Sign-In if provided
+                // Note: Apple only provides fullName on the FIRST sign-in, never again
+                if let fullName = appleIDCredential.fullName {
+                    let firstName = fullName.givenName ?? ""
+                    if !firstName.isEmpty {
+                        let userManager = UserManager(userId: uid)
+                        userManager.saveUserFirstName(firstName) { error in
+                            if let error = error {
+                                AppLogger.auth.error("Failed to save Apple Sign-In name: \(error.localizedDescription)")
+                            } else {
+                                AppLogger.auth.info("Saved name from Apple Sign-In: \(firstName)")
+                            }
+                        }
+                    } else {
+                        AppLogger.auth.info("Apple Sign-In: fullName provided but givenName is empty")
+                    }
+                } else {
+                    AppLogger.auth.info("Apple Sign-In: fullName not provided (likely returning user)")
+                }
+
                 completion(.success(uid))
             } else {
                 let error = NSError(domain: "AppleSignIn", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get user ID"])

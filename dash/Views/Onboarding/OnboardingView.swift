@@ -16,8 +16,11 @@ struct OnboardingView: View {
     @State private var firstName: String = ""
     @State private var showNameInput: Bool = false
     @State private var isCompleting: Bool = false
+    @State private var hasExistingName: Bool = false
 
-    private let totalPages = 4 // 3 intro pages + 1 name collection
+    private var totalPages: Int {
+        hasExistingName ? 3 : 4 // Skip name page if already provided
+    }
 
     var body: some View {
         ZStack {
@@ -57,11 +60,13 @@ struct OnboardingView: View {
                     OnboardingPage3()
                         .tag(2)
 
-                    OnboardingNamePage(
-                        firstName: $firstName,
-                        onComplete: completeOnboarding
-                    )
-                    .tag(3)
+                    if !hasExistingName {
+                        OnboardingNamePage(
+                            firstName: $firstName,
+                            onComplete: completeOnboarding
+                        )
+                        .tag(3)
+                    }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut, value: currentPage)
@@ -104,6 +109,49 @@ struct OnboardingView: View {
                     }
                     .padding(.horizontal, 32)
                     .padding(.bottom, 12)
+                } else if hasExistingName {
+                    // If on last page and name exists, show finish button
+                    Button(action: {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            completeOnboarding()
+                        }
+                    }) {
+                        HStack(spacing: 12) {
+                            Text("Let's Start")
+                                .font(.system(size: 18, weight: .bold))
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundColor(Color("purple"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            Color.white,
+                            in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                        )
+                        .modifier(GlassEffectIfAvailable())
+                        .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 12)
+                }
+            }
+        }
+        .onAppear {
+            checkForExistingName()
+        }
+    }
+
+    private func checkForExistingName() {
+        guard !userID.isEmpty else { return }
+
+        let userManager = UserManager(userId: userID)
+        userManager.fetchUserFirstName { name in
+            DispatchQueue.main.async {
+                hasExistingName = !name.isEmpty
+                if hasExistingName {
+                    AppLogger.ui.info("User already has name from Apple Sign-In, skipping name page")
                 }
             }
         }
@@ -112,12 +160,14 @@ struct OnboardingView: View {
     private func completeOnboarding() {
         isCompleting = true
 
-        // Save first name if provided
-        if !firstName.isEmpty {
+        // Save first name if provided and not already existing
+        if !firstName.isEmpty, !hasExistingName {
             let userManager = UserManager(userId: userID)
             userManager.saveUserFirstName(firstName) { error in
                 if let error = error {
                     AppLogger.database.error("Failed to save first name: \(error.localizedDescription)")
+                } else {
+                    AppLogger.ui.info("Saved first name from onboarding: \(firstName)")
                 }
             }
         }
