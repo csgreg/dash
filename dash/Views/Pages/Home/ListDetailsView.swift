@@ -9,12 +9,21 @@ import SwiftUI
 
 struct ListDetailsView: View {
     @State private var newItem: String = ""
+    @State private var editingItemId: String?
+    @State private var editingText: String = ""
+    @State private var isSavingEdit: Bool = false
     @State private var showClearConfirmation = false
     @State private var showDeleteConfirmation = false
     @State private var showLeaveConfirmation = false
     @State private var showListSettings = false
     @AppStorage("hasSeenListDetailsOnboarding") private var hasSeenListDetailsOnboarding: Bool = false
     @State private var showListDetailsOnboarding: Bool = false
+
+    enum FocusField: Hashable {
+        case editItem(String)
+    }
+
+    @FocusState private var focusedField: FocusField?
 
     let listId: String
 
@@ -101,7 +110,20 @@ struct ListDetailsView: View {
             } else {
                 List {
                     ForEach(list?.items ?? []) { item in
-                        ItemView(item: item, listId: listId)
+                        ItemView(
+                            item: item,
+                            listId: listId,
+                            editingItemId: editingItemId,
+                            editingText: $editingText,
+                            isEditInteractionDisabled: isSavingEdit || (editingItemId != nil && editingItemId != item.id),
+                            onStartEditing: { tappedItem in
+                                startEditing(tappedItem)
+                            },
+                            onSaveEditing: {
+                                saveEditingIfNeeded()
+                            },
+                            focusedField: $focusedField
+                        )
                     }
                     .onMove { from, moveTo in
                         guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
@@ -136,55 +158,85 @@ struct ListDetailsView: View {
             VStack {
                 Spacer()
                 VStack(spacing: 0) {
-                    HStack {
-                        // add item input - liquid glass style
-                        HStack {
-                            Image(systemName: "square.and.pencil")
-                                .foregroundColor(Color("purple"))
-                                .font(.system(size: 16, weight: .semibold))
-                            TextField("Item Name", text: $newItem)
-                                .font(.system(size: 16, weight: .medium))
-
-                            Spacer()
-
-                            if !newItem.isEmpty {
-                                Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(isValidInput ? .green : .red)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .modifier(GlassEffectIfAvailable())
-                        .padding(.leading)
-
-                        // add item button - liquid glass style
-                        Button(
-                            action: {
-                                guard let currentList = list else { return }
-                                let item = Item(
-                                    id: UUID().uuidString, text: newItem, order: currentList.items.count
-                                )
-                                listManager.addItemToList(listId: listId, item: item)
-                                newItem = ""
-                            },
-                            label: {
-                                Text("Add")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 16, weight: .bold))
+                    Group {
+                        if editingItemId != nil {
+                            Button(
+                                action: {
+                                    saveEditingIfNeeded()
+                                },
+                                label: {
+                                    HStack(spacing: 10) {
+                                        if isSavingEdit {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        }
+                                        Text(isSavingEdit ? "Saving" : "Save")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
                                     .frame(maxWidth: .infinity)
-                                    .padding(.horizontal, 24)
                                     .padding(.vertical, 14)
                                     .background(
                                         Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                                     )
-                                    .frame(maxWidth: 100)
+                                }
+                            )
+                            .disabled(isSavingEdit || editingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .opacity((isSavingEdit || editingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? 0.5 : 1.0)
+                            .modifier(GlassEffectIfAvailable())
+                            .padding(.horizontal)
+                        } else {
+                            HStack {
+                                // add item input - liquid glass style
+                                HStack {
+                                    Image(systemName: "square.and.pencil")
+                                        .foregroundColor(Color("purple"))
+                                        .font(.system(size: 16, weight: .semibold))
+                                    TextField("Item Name", text: $newItem)
+                                        .font(.system(size: 16, weight: .medium))
+
+                                    Spacer()
+
+                                    if !newItem.isEmpty {
+                                        Image(systemName: isValidInput ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(isValidInput ? .green : .red)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+                                .modifier(GlassEffectIfAvailable())
+                                .padding(.leading)
+
+                                // add item button - liquid glass style
+                                Button(
+                                    action: {
+                                        guard let currentList = list else { return }
+                                        let item = Item(
+                                            id: UUID().uuidString, text: newItem, order: currentList.items.count
+                                        )
+                                        listManager.addItemToList(listId: listId, item: item)
+                                        newItem = ""
+                                    },
+                                    label: {
+                                        Text("Add")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, 14)
+                                            .background(
+                                                Color("purple"), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                            )
+                                            .frame(maxWidth: 100)
+                                    }
+                                )
+                                .disabled(!isValidInput)
+                                .opacity(isValidInput ? 1.0 : 0.5)
+                                .modifier(GlassEffectIfAvailable())
+                                .padding(.trailing)
                             }
-                        )
-                        .disabled(!isValidInput)
-                        .opacity(isValidInput ? 1.0 : 0.5)
-                        .modifier(GlassEffectIfAvailable())
-                        .padding(.trailing)
+                        }
                     }
                     .padding(.horizontal, 8)
                     .padding(.top, 12)
@@ -382,6 +434,31 @@ struct ListDetailsView: View {
                 .environmentObject(listManager)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+            }
+        }
+    }
+
+    private func startEditing(_ item: Item) {
+        guard !isSavingEdit else { return }
+        guard editingItemId == nil else { return }
+        editingItemId = item.id
+        editingText = item.text
+        focusedField = .editItem(item.id)
+    }
+
+    private func saveEditingIfNeeded() {
+        guard let itemId = editingItemId else { return }
+        let trimmed = editingText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard !isSavingEdit else { return }
+
+        focusedField = nil
+        isSavingEdit = true
+        listManager.updateItemText(listId: listId, itemId: itemId, newText: trimmed) { _ in
+            DispatchQueue.main.async {
+                self.isSavingEdit = false
+                self.editingItemId = nil
+                self.editingText = ""
             }
         }
     }

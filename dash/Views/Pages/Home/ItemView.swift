@@ -11,10 +11,14 @@ struct ItemView: View {
     let item: Item
     let listId: String
 
+    let editingItemId: String?
+    @Binding var editingText: String
+    let isEditInteractionDisabled: Bool
+    let onStartEditing: (Item) -> Void
+    let onSaveEditing: () -> Void
+    @FocusState.Binding var focusedField: ListDetailsView.FocusField?
+
     @EnvironmentObject var listManager: ListManager
-    @State private var isEditing = false
-    @State private var editedText = ""
-    @FocusState private var isFocused: Bool
 
     private var currentItem: Item? {
         listManager.lists
@@ -41,26 +45,16 @@ struct ItemView: View {
                         .foregroundColor(currentItem.done ? .green : .gray)
                 }
                 .buttonStyle(.plain)
+                .disabled(isEditInteractionDisabled)
 
                 // Item text or edit field
-                if isEditing {
-                    HStack(spacing: 8) {
-                        TextField("Item name", text: $editedText)
-                            .font(.system(size: 16, weight: .medium))
-                            .focused($isFocused)
-                            .onSubmit {
-                                saveEdit()
-                            }
-
-                        Button {
-                            saveEdit()
-                        } label: {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.green)
+                if editingItemId == currentItem.id {
+                    TextField("Item name", text: $editingText)
+                        .font(.system(size: 16, weight: .medium))
+                        .focused($focusedField, equals: .editItem(currentItem.id))
+                        .onSubmit {
+                            onSaveEditing()
                         }
-                        .buttonStyle(.plain)
-                    }
                 } else {
                     Text(currentItem.text)
                         .font(.system(size: 16, weight: .medium))
@@ -68,7 +62,8 @@ struct ItemView: View {
                         .foregroundColor(currentItem.done ? .secondary : .primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .onTapGesture {
-                            startEditing()
+                            guard !isEditInteractionDisabled else { return }
+                            onStartEditing(currentItem)
                         }
                 }
             }
@@ -77,11 +72,13 @@ struct ItemView: View {
             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                 // Left swipe: Edit
                 Button {
-                    startEditing()
+                    guard !isEditInteractionDisabled else { return }
+                    onStartEditing(currentItem)
                 } label: {
                     Image(systemName: "pencil")
                 }
                 .tint(.blue)
+                .disabled(isEditInteractionDisabled)
             }
             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                 // Right swipe: Delete
@@ -93,48 +90,26 @@ struct ItemView: View {
                     Image(systemName: "trash")
                 }
                 .tint(.red)
+                .disabled(isEditInteractionDisabled)
             }
             .transition(.scale)
         }
-    }
-
-    private func startEditing() {
-        guard let currentItem = currentItem else { return }
-        editedText = currentItem.text
-        withAnimation {
-            isEditing = true
-        }
-        // Focus after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            isFocused = true
-        }
-    }
-
-    private func saveEdit() {
-        guard !editedText.trimmingCharacters(in: .whitespaces).isEmpty else {
-            cancelEdit()
-            return
-        }
-
-        listManager.updateItemText(listId: listId, itemId: item.id, newText: editedText)
-
-        withAnimation {
-            isEditing = false
-        }
-        isFocused = false
-    }
-
-    private func cancelEdit() {
-        withAnimation {
-            isEditing = false
-        }
-        isFocused = false
-        editedText = ""
     }
 }
 
 struct ItemView_Previews: PreviewProvider {
     static var previews: some View {
-        ItemView(item: Item(id: "1", text: "rama margarin", done: false), listId: "alma")
+        @FocusState var focusedField: ListDetailsView.FocusField?
+        return ItemView(
+            item: Item(id: "1", text: "rama margarin", done: false),
+            listId: "alma",
+            editingItemId: nil,
+            editingText: .constant(""),
+            isEditInteractionDisabled: false,
+            onStartEditing: { _ in },
+            onSaveEditing: {},
+            focusedField: $focusedField
+        )
+        .environmentObject(ListManager(userId: "preview"))
     }
 }

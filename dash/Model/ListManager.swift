@@ -426,7 +426,7 @@ class ListManager: ObservableObject {
         }
     }
 
-    func updateItemText(listId: String, itemId: String, newText: String) {
+    func updateItemText(listId: String, itemId: String, newText: String, completion: ((Error?) -> Void)? = nil) {
         let itemRef = firestore.collection("lists").document(listId)
             .collection("items").document(itemId)
 
@@ -435,8 +435,10 @@ class ListManager: ObservableObject {
         ]) { error in
             if let error = error {
                 AppLogger.database.error("Failed to update item text: \(error.localizedDescription)")
+                completion?(error)
             } else {
                 AppLogger.database.debug("Item text updated")
+                completion?(nil)
             }
         }
     }

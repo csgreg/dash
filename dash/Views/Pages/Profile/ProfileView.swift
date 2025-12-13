@@ -255,7 +255,7 @@ struct ProfileView: View {
                     .padding(.horizontal)
                     .padding(.top, 20)
                     // App Version
-                    Text("Version 1.0.0")
+                    Text("Version 1.1.0")
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                         .padding(.top, 10)
