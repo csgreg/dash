@@ -31,7 +31,7 @@ struct SignupView: View {
             VStack(spacing: 8) {
                 Text("Create an account!")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
             .padding(.top, 24)
             .padding(.bottom, 40)
@@ -41,7 +41,7 @@ struct SignupView: View {
                 // email input
                 HStack(spacing: 12) {
                     Image(systemName: "mail")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     TextField("Email", text: $email)
@@ -66,7 +66,7 @@ struct SignupView: View {
                 // password
                 HStack(spacing: 12) {
                     Image(systemName: "lock")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     SecureField("Password", text: $password)
@@ -90,7 +90,7 @@ struct SignupView: View {
                 // password confirm
                 HStack(spacing: 12) {
                     Image(systemName: "lock")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     SecureField("Verify Password", text: $verifyPassword)
@@ -120,31 +120,31 @@ struct SignupView: View {
                 }) {
                     Image(systemName: acceptedTerms ? "checkmark.square.fill" : "square")
                         .font(.system(size: 20))
-                        .foregroundColor(acceptedTerms ? Color("purple") : .gray)
+                        .foregroundColor(acceptedTerms ? Color("purple") : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
 
                 HStack(spacing: 4) {
                     Text("I agree to the")
                         .font(.system(size: 13))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
 
                     Button(action: {
                         showPrivacyPolicy = true
                     }) {
                         Text("Privacy Policy")
                             .font(.system(size: 13))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .underline()
                     }
 
                     Text("and")
                         .font(.system(size: 13))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
 
                     Link("Apple's Terms", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
                         .font(.system(size: 13))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .underline()
                 }
             }
@@ -232,7 +232,7 @@ struct SignupView: View {
             // Sign in text link
             HStack(spacing: 4) {
                 Text("Already have an account?")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 15, weight: .regular))
 
                 Button(action: {
@@ -241,7 +241,7 @@ struct SignupView: View {
                     }
                 }) {
                     Text("Sign in!")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 15, weight: .bold))
                 }
             }

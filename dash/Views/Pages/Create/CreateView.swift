@@ -96,7 +96,7 @@ struct CreateView: View {
             "Create customized lists for any purpose and invite others to collaborate."
         )
         .font(.system(size: 15, weight: .regular))
-        .foregroundColor(Color("dark-gray"))
+        .foregroundColor(.secondary)
         .padding(.horizontal, 24)
         .padding(.top, 8)
     }
@@ -105,7 +105,7 @@ struct CreateView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("List Name")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color("dark-gray"))
+                .foregroundColor(.secondary)
                 .padding(.horizontal, 24)
 
             HStack(spacing: 12) {
@@ -124,9 +124,7 @@ struct CreateView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.white)
-            .cornerRadius(.infinity)
-            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+            .modifier(GlassEffectIfAvailable())
             .padding(.horizontal, 20)
         }
     }
@@ -135,7 +133,7 @@ struct CreateView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Customize")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color("dark-gray"))
+                .foregroundColor(.secondary)
                 .padding(.horizontal, 24)
 
             VStack(spacing: 12) {
@@ -231,9 +229,7 @@ struct EmojiSelectorButton: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .background(Color.white)
-            .cornerRadius(.infinity)
-            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+            .modifier(GlassEffectIfAvailable())
         }
     }
 }
@@ -258,7 +254,7 @@ struct ColorSelectorButton: View {
                         .frame(width: 28, height: 28)
                         .overlay(
                             Circle()
-                                .stroke(Color.white, lineWidth: 2)
+                                .stroke(Color.primary.opacity(0.2), lineWidth: 2)
                         )
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 }
@@ -275,9 +271,7 @@ struct ColorSelectorButton: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .background(Color.white)
-            .cornerRadius(.infinity)
-            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+            .modifier(GlassEffectIfAvailable())
         }
     }
 }

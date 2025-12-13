@@ -13,11 +13,9 @@ struct AuthView: View {
     var body: some View {
         if currentViewShowing == "login" {
             LoginView(currentShowingView: $currentViewShowing)
-                .preferredColorScheme(.light)
                 .transition(.move(edge: .leading))
         } else {
             SignupView(currentShowingView: $currentViewShowing)
-                .preferredColorScheme(.light)
         }
     }
 }

@@ -106,7 +106,7 @@ struct ListSettingsView: View {
     private var descriptionText: some View {
         Text("Give your list a fresh new look! ✨")
             .font(.system(size: 15, weight: .regular))
-            .foregroundColor(Color("dark-gray"))
+            .foregroundColor(.secondary)
             .padding(.horizontal, 24)
     }
 
@@ -114,7 +114,7 @@ struct ListSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("List Name")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color("dark-gray"))
+                .foregroundColor(.secondary)
                 .padding(.horizontal, 24)
 
             HStack(spacing: 12) {
@@ -144,7 +144,7 @@ struct ListSettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Customize")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color("dark-gray"))
+                .foregroundColor(.secondary)
                 .padding(.horizontal, 24)
 
             VStack(spacing: 12) {

@@ -34,7 +34,7 @@ struct PrivacyPolicyView: View {
                     • Email address (for authentication)
                     • First name (optional, if provided)
                     • Lists and items you create
-                    • Usage statistics (items created, achievements)
+                    • Usage statistics (items created, rewards)
                     • Device information (for app functionality)
                     • Feedback submissions (optional email, message, type, timestamp)
                     • Authentication data from Apple or Google (when using third-party sign-in)
@@ -50,7 +50,7 @@ struct PrivacyPolicyView: View {
                     • Provide and maintain our service
                     • Authenticate your account
                     • Sync your data across devices
-                    • Track achievements and rewards
+                    • Track rewards and progress
                     • Improve our app and user experience
                     """
                 )

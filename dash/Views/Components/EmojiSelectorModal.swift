@@ -37,7 +37,7 @@ struct EmojiSelectorModal: View {
                 HStack {
                     Text("Select Emoji")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
 
                     Spacer()
 

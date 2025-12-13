@@ -2,7 +2,7 @@
 //  RewardsView.swift
 //  dash
 //
-//  Displays user achievements and unlockable colors
+//  Displays user rewards and unlockable colors
 //
 
 import SwiftUI
@@ -15,36 +15,8 @@ struct RewardsView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Hero Stats Section
-                    VStack(spacing: 16) {
-                        // Icon in gradient circle
-                        ZStack {
-                            // Gradient circle background
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color("purple"), Color("purple").opacity(0.6)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 120, height: 120)
-                                .shadow(color: Color("purple").opacity(0.3), radius: 20, x: 0, y: 10)
-
-                            // Icon
-                            Image(systemName: rewardsManager.getCurrentAchievement().icon)
-                                .font(.system(size: 50, weight: .semibold))
-                                .foregroundColor(.white)
-                        }
-
-                        Text(rewardsManager.getCurrentAchievement().title)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(Color("purple"))
-                    }
-                    .padding(.top, 20)
-
-                    // Progress to Next Achievement
-                    if let nextAchievement = rewardsManager.getNextAchievement() {
+                    // Progress to Next Reward
+                    if let nextReward = rewardsManager.getNextReward() {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text("Next Milestone")
@@ -76,12 +48,12 @@ struct RewardsView: View {
                             .frame(height: 12)
 
                             HStack {
-                                Image(systemName: nextAchievement.icon)
+                                Image(systemName: nextReward.icon)
                                     .foregroundColor(Color("purple"))
-                                Text(nextAchievement.title)
+                                Text(nextReward.title)
                                     .font(.system(size: 15, weight: .medium))
                                 Spacer()
-                                Text("\(nextAchievement.requiredItems) items")
+                                Text("\(nextReward.requiredItems) items")
                                     .font(.system(size: 13))
                                     .foregroundColor(.gray)
                             }
@@ -93,12 +65,12 @@ struct RewardsView: View {
                         )
                         .padding(.horizontal)
                     } else {
-                        // All achievements unlocked
+                        // All rewards unlocked
                         VStack(spacing: 8) {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 40))
                                 .foregroundColor(.green)
-                            Text("All Achievements Unlocked!")
+                            Text("All Rewards Unlocked!")
                                 .font(.system(size: 17, weight: .semibold))
                             Text("You're a legend! 🎉")
                                 .foregroundColor(.gray)
@@ -106,16 +78,16 @@ struct RewardsView: View {
                         .padding()
                     }
 
-                    // Achievements List
+                    // Rewards List
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Achievements")
+                        Text("Rewards")
                             .font(.system(size: 20, weight: .bold))
                             .padding(.horizontal)
 
-                        ForEach(rewardsManager.achievements) { achievement in
-                            AchievementRow(
-                                achievement: achievement,
-                                isUnlocked: rewardsManager.totalItemsCreated >= achievement.requiredItems,
+                        ForEach(rewardsManager.rewards) { reward in
+                            RewardRow(
+                                reward: reward,
+                                isUnlocked: rewardsManager.totalItemsCreated >= reward.requiredItems,
                                 currentItems: rewardsManager.totalItemsCreated
                             )
                         }
@@ -128,11 +100,11 @@ struct RewardsView: View {
                             .padding(.horizontal)
 
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            ForEach(rewardsManager.achievements) { achievement in
+                            ForEach(rewardsManager.rewards) { reward in
                                 ColorCard(
-                                    colorName: achievement.unlockedColor,
-                                    displayName: achievement.colorDisplayName,
-                                    isUnlocked: rewardsManager.totalItemsCreated >= achievement.requiredItems
+                                    colorName: reward.unlockedColor,
+                                    displayName: reward.colorDisplayName,
+                                    isUnlocked: rewardsManager.totalItemsCreated >= reward.requiredItems
                                 )
                             }
                         }
@@ -155,10 +127,10 @@ struct RewardsView: View {
     }
 }
 
-// MARK: - Achievement Row Component
+// MARK: - Reward Row Component
 
-struct AchievementRow: View {
-    let achievement: Achievement
+struct RewardRow: View {
+    let reward: Reward
     let isUnlocked: Bool
     let currentItems: Int
 
@@ -170,18 +142,18 @@ struct AchievementRow: View {
                     .fill(isUnlocked ? Color("purple").opacity(0.2) : Color.gray.opacity(0.1))
                     .frame(width: 50, height: 50)
 
-                Image(systemName: achievement.icon)
+                Image(systemName: reward.icon)
                     .font(.system(size: 24))
                     .foregroundColor(isUnlocked ? Color("purple") : .gray)
             }
 
             // Info
             VStack(alignment: .leading, spacing: 4) {
-                Text(achievement.title)
+                Text(reward.title)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(isUnlocked ? .primary : .gray)
 
-                Text(achievement.description)
+                Text(reward.description)
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
 

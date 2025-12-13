@@ -57,12 +57,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct DashApp: App {
     @AppStorage("uid") private var userID: String = ""
     @StateObject private var deepLinkHandler = DeepLinkHandler()
+    @StateObject private var appearanceManager = AppearanceManager()
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
         WindowGroup {
             ContentView(userId: userID, deepLinkHandler: deepLinkHandler)
+                .preferredColorScheme(appearanceManager.preferredColorScheme)
+                .environmentObject(appearanceManager)
                 .onAppear {
                     // Connect deepLinkHandler to AppDelegate for background handling
                     delegate.deepLinkHandler = deepLinkHandler

@@ -13,12 +13,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @AppStorage("uid") var userID: String = ""
+    @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var userEmail: String = ""
     @State private var firstName: String = ""
     @State private var isEditingName: Bool = false
     @State private var showSignOutConfirmation: Bool = false
-    @State private var showDeleteConfirmation: Bool = false
-    @State private var isDeleting: Bool = false
 
     var body: some View {
         NavigationView {
@@ -125,6 +124,40 @@ struct ProfileView: View {
                             .padding(.horizontal)
 
                         VStack(spacing: 0) {
+                            // Appearance Setting
+                            HStack(spacing: 16) {
+                                // Icon
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.purple.opacity(0.2))
+                                        .frame(width: 40, height: 40)
+
+                                    Image(systemName: "moon.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.purple)
+                                }
+
+                                // Title
+                                Text("Appearance")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+
+                                Spacer()
+
+                                // Picker
+                                Picker("", selection: $appearanceManager.appearanceMode) {
+                                    ForEach(AppearanceMode.allCases, id: \.self) { mode in
+                                        Text(mode.rawValue).tag(mode.rawValue)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .tint(Color("purple"))
+                            }
+                            .padding()
+
+                            Divider()
+                                .padding(.leading, 60)
+
                             NavigationLink(destination: PrivacyPolicyView()) {
                                 ProfileRow(
                                     icon: "lock.fill",
@@ -180,6 +213,19 @@ struct ProfileView: View {
                                     showChevron: true
                                 )
                             }
+
+                            Divider()
+                                .padding(.leading, 60)
+
+                            NavigationLink(destination: DeleteAccountView()) {
+                                ProfileRow(
+                                    icon: "trash.fill",
+                                    title: "Delete Account",
+                                    value: "",
+                                    iconColor: .red,
+                                    showChevron: true
+                                )
+                            }
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 16)
@@ -188,54 +234,26 @@ struct ProfileView: View {
                         .padding(.horizontal)
                     }
 
-                    VStack {
-                        // Sign Out Button
-                        Button(action: {
-                            showSignOutConfirmation = true
-                        }) {
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text("Sign Out")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            )
+                    // Sign Out Button
+                    Button(action: {
+                        showSignOutConfirmation = true
+                    }) {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Sign Out")
+                                .font(.system(size: 16, weight: .semibold))
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 20)
-
-                        // Delete Account Button
-                        Button(action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            HStack {
-                                if isDeleting {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
-                                } else {
-                                    Image(systemName: "trash.fill")
-                                        .font(.system(size: 16, weight: .semibold))
-                                    Text("Delete Account")
-                                        .font(.system(size: 16, weight: .semibold))
-                                }
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                    .stroke(Color.red, lineWidth: 2)
-                            )
-                        }
-                        .disabled(isDeleting)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(Color.red, lineWidth: 2)
+                        )
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
                     // App Version
                     Text("Version 1.0.0")
                         .font(.system(size: 13))
@@ -266,14 +284,6 @@ struct ProfileView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to sign out?")
-        }
-        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete Account", role: .destructive) {
-                deleteAccount()
-            }
-        } message: {
-            Text("This will permanently delete your account and all your data. This action cannot be undone.")
         }
     }
 
@@ -313,63 +323,6 @@ struct ProfileView: View {
             return String(userEmail.prefix(1)).uppercased()
         }
         return "?"
-    }
-
-    func deleteAccount() {
-        isDeleting = true
-
-        let userManager = UserManager(userId: userID)
-
-        // Step 1: Delete user document
-        userManager.deleteUserDocument { error in
-            if let error = error {
-                AppLogger.database.error("Failed to delete user document: \(error.localizedDescription)")
-            }
-        }
-
-        // Step 2: Delete all user's lists (query directly - no ListManager needed)
-        deleteAllUserListsDirectly()
-
-        // Step 3: Delete user from Firebase Auth
-        userManager.deleteUserAccount { error in
-            self.isDeleting = false
-
-            if let error = error {
-                AppLogger.auth.error("Failed to delete user account: \(error.localizedDescription)")
-                // Show error alert if needed
-            } else {
-                AppLogger.auth.notice("User account deleted")
-                // Sign out to return to login screen
-                self.signOut()
-            }
-        }
-    }
-
-    private func deleteAllUserListsDirectly() {
-        let db = Firestore.firestore()
-
-        db.collection("lists")
-            .whereField("users", arrayContains: userID)
-            .getDocuments { snapshot, _ in
-                guard let documents = snapshot?.documents else { return }
-
-                for document in documents {
-                    let data = document.data()
-                    let creatorId = data["creatorId"] as? String
-
-                    if creatorId == self.userID {
-                        // Delete owned lists
-                        document.reference.delete()
-                        AppLogger.database.info("Deleted owned list during account deletion")
-                    } else {
-                        // Remove user from shared lists
-                        var users = data["users"] as? [String] ?? []
-                        users.removeAll { $0 == self.userID }
-                        document.reference.updateData(["users": users])
-                        AppLogger.database.info("Left shared list during account deletion")
-                    }
-                }
-            }
     }
 
     func signOut() {
@@ -436,5 +389,6 @@ struct ProfileRow: View {
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         ProfileView()
+            .environmentObject(AppearanceManager())
     }
 }

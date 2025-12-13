@@ -37,7 +37,7 @@ struct LoginView: View {
             VStack(spacing: 8) {
                 Text("Welcome back!")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
             .padding(.top, 24)
             .padding(.bottom, 40)
@@ -47,7 +47,7 @@ struct LoginView: View {
                 // email input
                 HStack(spacing: 12) {
                     Image(systemName: "mail")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     TextField("Email", text: $email)
@@ -72,7 +72,7 @@ struct LoginView: View {
                 // password
                 HStack(spacing: 12) {
                     Image(systemName: "lock")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     SecureField("Password", text: $password)
@@ -102,7 +102,7 @@ struct LoginView: View {
                     showForgotPassword = true
                 }) {
                     Text("Forgot password?")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 15, weight: .medium))
                 }
             }
@@ -162,14 +162,14 @@ struct LoginView: View {
             // Divider with "OR"
             HStack {
                 Rectangle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(.secondary.opacity(0.3))
                     .frame(height: 1)
                 Text("OR")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 12)
                 Rectangle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(.secondary.opacity(0.3))
                     .frame(height: 1)
             }
             .padding(.horizontal, 24)
@@ -233,7 +233,7 @@ struct LoginView: View {
             // Alternative Sign In label
             Text("Alternative Sign In")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.gray.opacity(0.7))
+                .foregroundColor(.secondary.opacity(0.7))
                 .padding(.top, 8)
 
             Spacer()
@@ -241,7 +241,7 @@ struct LoginView: View {
             // Create account text link
             HStack(spacing: 4) {
                 Text("Don't have an account?")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 15, weight: .regular))
 
                 Button(action: {
@@ -250,7 +250,7 @@ struct LoginView: View {
                     }
                 }) {
                     Text("Create one!")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 15, weight: .bold))
                 }
             }
@@ -263,17 +263,17 @@ struct LoginView: View {
                 }) {
                     Text("Privacy Policy")
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .underline()
                 }
 
                 Text("•")
                     .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
 
                 Link("Apple's Terms", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
                     .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .underline()
             }
             .padding(.bottom, 8)
@@ -286,13 +286,9 @@ struct LoginView: View {
                     })
             }
         }
-        .overlay(
-            Group {
-                if showForgotPassword {
-                    ForgotPasswordView(isPresented: $showForgotPassword)
-                        .transition(.opacity)
-                }
-            }
-        )
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView(isPresented: $showForgotPassword)
+                .presentationDetents([.fraction(0.4)])
+        }
     }
 }

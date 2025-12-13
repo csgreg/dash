@@ -17,48 +17,20 @@ struct ForgotPasswordView: View {
     @State private var errorMessage: String = ""
 
     var body: some View {
-        ZStack {
-            // Background overlay
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    isPresented = false
-                }
-
-            // Main content
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text("Reset Password")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.black)
-
-                    Spacer()
-
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 24)
-                .padding(.bottom, 16)
-
+        NavigationView {
+            VStack(spacing: 24) {
                 // Description
                 Text("Enter your email address and we'll send you a link to reset your password.")
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.leading)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
+                    .padding(.top, 20)
 
                 // Email input
                 HStack(spacing: 12) {
                     Image(systemName: "mail")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
 
                     TextField("Email", text: $email)
@@ -109,13 +81,18 @@ struct ForgotPasswordView: View {
                 .disabled(isLoading || !email.isValidEmail())
                 .opacity((isLoading || !email.isValidEmail()) ? 0.6 : 1.0)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color.white)
-            )
-            .padding(.horizontal, 32)
-            .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+            .navigationTitle("Reset Password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") {
+                        isPresented = false
+                    }
+                }
+            }
+            .background(Color(UIColor.systemBackground))
         }
+        .presentationBackground(Color(UIColor.systemBackground))
         .alert("Password Reset Sent", isPresented: $showSuccessAlert) {
             Button("OK") {
                 isPresented = false

@@ -21,35 +21,34 @@ struct MainView: View {
 
     var body: some View {
         TabView(selection: $currentTab) {
-            HomeView(selectedTab: $currentTab).preferredColorScheme(.light)
+            HomeView(selectedTab: $currentTab)
                 .tabItem {
                     Image(systemName: "house")
                     Text("Lists")
                 }
                 .tag(0)
 
-            CreateView(selectedTab: $currentTab).preferredColorScheme(.light)
+            CreateView(selectedTab: $currentTab)
                 .tabItem {
                     Image(systemName: "plus.square.fill.on.square.fill")
                     Text("Create")
                 }
                 .tag(1)
 
-            RewardsView().preferredColorScheme(.light)
+            RewardsView()
                 .tabItem {
                     Image(systemName: "trophy.fill")
                     Text("Rewards")
                 }
                 .tag(2)
 
-            ProfileView().preferredColorScheme(.light)
+            ProfileView()
                 .tabItem {
                     Image(systemName: "person.crop.circle.fill")
                     Text("Profile")
                 }
                 .tag(3)
         }
-        .preferredColorScheme(.light)
         .onChange(of: currentTab) { _, newTab in
             logTabChange(newTab)
         }

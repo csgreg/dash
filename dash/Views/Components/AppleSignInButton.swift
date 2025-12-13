@@ -31,7 +31,7 @@ struct AppleSignInButton: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
         }

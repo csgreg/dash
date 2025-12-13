@@ -30,7 +30,7 @@ struct ColorSelectorModal: View {
                 HStack {
                     Text("Select Color")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
 
                     Spacer()
 
@@ -49,13 +49,13 @@ struct ColorSelectorModal: View {
 
                 // Color grid - horizontal layout
                 HStack(spacing: 16) {
-                    ForEach(rewardsManager.achievements) { achievement in
-                        let isUnlocked = rewardsManager.isColorUnlocked(achievement.unlockedColor)
+                    ForEach(rewardsManager.rewards) { reward in
+                        let isUnlocked = rewardsManager.isColorUnlocked(reward.unlockedColor)
 
                         Button(action: {
                             if isUnlocked {
                                 withAnimation(.easeOut(duration: 0.15)) {
-                                    selectedColor = achievement.unlockedColor
+                                    selectedColor = reward.unlockedColor
                                     isPresented = false
                                 }
                             }
@@ -64,20 +64,20 @@ struct ColorSelectorModal: View {
                                 Circle()
                                     .fill(
                                         isUnlocked
-                                            ? Color(achievement.unlockedColor)
+                                            ? Color(reward.unlockedColor)
                                             : Color.gray.opacity(0.3)
                                     )
                                     .frame(width: 60, height: 60)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.white, lineWidth: 3)
-                                            .opacity(selectedColor == achievement.unlockedColor ? 1 : 0)
+                                            .stroke(Color.primary, lineWidth: 3)
+                                            .opacity(selectedColor == reward.unlockedColor ? 1 : 0)
                                     )
                                     .overlay(
                                         Circle()
-                                            .stroke(Color(achievement.unlockedColor), lineWidth: 3)
+                                            .stroke(Color(reward.unlockedColor), lineWidth: 3)
                                             .scaleEffect(1.15)
-                                            .opacity(selectedColor == achievement.unlockedColor ? 0.5 : 0)
+                                            .opacity(selectedColor == reward.unlockedColor ? 0.5 : 0)
                                     )
 
                                 if !isUnlocked {
@@ -94,11 +94,11 @@ struct ColorSelectorModal: View {
                 .padding(.vertical, 8)
 
                 // Info text
-                if rewardsManager.getUnlockedColors().count < rewardsManager.achievements.count {
+                if rewardsManager.getUnlockedColors().count < rewardsManager.rewards.count {
                     HStack(spacing: 8) {
                         Image(systemName: "trophy.fill")
                             .foregroundColor(Color("purple"))
-                        Text("Complete achievements to unlock more colors")
+                        Text("Complete rewards to unlock more colors")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.gray)
                     }
