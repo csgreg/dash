@@ -27,12 +27,6 @@ struct LoginView: View {
             Spacer()
                 .frame(height: 60)
 
-            // App Logo
-            Image("logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 100, height: 100)
-
             // Title and Subtitle
             VStack(spacing: 8) {
                 Text("Welcome back!")
@@ -107,7 +101,7 @@ struct LoginView: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.top, 8)
+            .padding(.top, 12)
 
             Spacer()
 
@@ -158,6 +152,26 @@ struct LoginView: View {
                     message: Text("Incorrect email or password. Please try again.")
                 )
             }
+
+            // Create account button
+            Button(action: {
+                withAnimation {
+                    self.currentShowingView = "signup"
+                }
+            }) {
+                Text("Create account")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Color("purple"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                            .stroke(Color("purple").opacity(0.5), lineWidth: 1.5)
+                    )
+            }
+            .modifier(GlassEffectIfAvailable())
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
 
             // Divider with "OR"
             HStack {
@@ -229,31 +243,6 @@ struct LoginView: View {
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
-
-            // Alternative Sign In label
-            Text("Alternative Sign In")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.secondary.opacity(0.7))
-                .padding(.top, 8)
-
-            Spacer()
-
-            // Create account text link
-            HStack(spacing: 4) {
-                Text("Don't have an account?")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 15, weight: .regular))
-
-                Button(action: {
-                    withAnimation {
-                        self.currentShowingView = "signup"
-                    }
-                }) {
-                    Text("Create one!")
-                        .foregroundColor(.primary)
-                        .font(.system(size: 15, weight: .bold))
-                }
-            }
             .padding(.bottom, 32)
 
             // Privacy & Terms links

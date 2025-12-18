@@ -32,18 +32,17 @@ struct OnboardingView: View {
                 // Skip button
                 HStack {
                     Spacer()
-                    if currentPage < totalPages - 1 {
-                        Button(action: {
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                completeOnboarding()
-                            }
-                        }) {
-                            Text("Skip")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.8))
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
+
+                    Button(action: {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            completeOnboarding()
                         }
+                    }) {
+                        Text("Skip")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
                     }
                 }
                 .padding(.horizontal, 24)

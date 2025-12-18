@@ -15,14 +15,7 @@ struct OnboardingPage1: View {
 
     var body: some View {
         VStack {
-            // App logo with animation
-            Image("logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 120, height: 120)
-                .scaleEffect(scale)
-                .opacity(opacity)
-
+            Spacer()
             VStack(spacing: 16) {
                 Text("Welcome to Dash! 🎉")
                     .font(.system(size: 32, weight: .bold))
@@ -30,7 +23,7 @@ struct OnboardingPage1: View {
                     .multilineTextAlignment(.center)
                     .opacity(opacity)
 
-                Text("Your smart companion for organizing life together")
+                Text("Create your first list and start organizing your life!")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
