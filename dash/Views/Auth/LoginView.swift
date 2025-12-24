@@ -29,7 +29,7 @@ struct LoginView: View {
 
             // Title and Subtitle
             VStack(spacing: 8) {
-                Text("Welcome back!")
+                Text("Good to see you! 👋")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.primary)
             }
