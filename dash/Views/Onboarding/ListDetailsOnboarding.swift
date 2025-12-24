@@ -88,7 +88,11 @@ struct ListDetailsOnboarding: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(UIColor.systemBackground))
+                    .fill(Color(UIColor.secondarySystemBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.3), radius: 24, x: 0, y: 12)
             .padding(.horizontal, 32)

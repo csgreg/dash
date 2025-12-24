@@ -133,9 +133,7 @@ struct ListSettingsView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.white)
-            .cornerRadius(.infinity)
-            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
+            .modifier(GlassEffectIfAvailable())
             .padding(.horizontal, 20)
         }
     }
