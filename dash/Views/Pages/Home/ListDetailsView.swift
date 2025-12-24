@@ -88,8 +88,12 @@ struct ListDetailsView: View {
                                 .fill(Color("purple").opacity(0.1))
                                 .frame(width: 100, height: 100)
 
-                            Text("📌")
-                                .font(.system(size: 50))
+                            Image("pin")
+                                .resizable()
+                                .renderingMode(.original)
+                                .interpolation(.high)
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 50)
                         }
 
                         // Text content

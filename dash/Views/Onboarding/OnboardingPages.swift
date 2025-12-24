@@ -10,25 +10,35 @@ import SwiftUI
 // MARK: - Page 1: Welcome & Introduction
 
 struct OnboardingPage1: View {
-    @State private var scale: CGFloat = 0.8
-    @State private var opacity: Double = 0
-
     var body: some View {
         VStack {
-            Spacer()
+            // Illustration
+            ZStack {
+                // Background circles
+                Circle()
+                    .fill(Color.white.opacity(0))
+                    .frame(width: 120, height: 120)
+
+                // Main emoji
+                Image("confetti")
+                    .resizable()
+                    .renderingMode(.original)
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 120)
+            }
+            .drawingGroup()
             VStack(spacing: 16) {
-                Text("Welcome to Dash! 🎉")
+                Text("Welcome to Dash!")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .opacity(opacity)
 
                 Text("Create your first list and start organizing your life!")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
-                    .opacity(opacity)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 32)
@@ -42,29 +52,20 @@ struct OnboardingPage1: View {
                     title: "Create Lists",
                     description: "Organize anything, anytime"
                 )
-                .opacity(opacity)
 
                 FeatureHighlight(
                     icon: "person.2.fill",
                     title: "Collaborate",
                     description: "Share with friends & family"
                 )
-                .opacity(opacity)
 
                 FeatureHighlight(
                     icon: "checkmark.circle.fill",
                     title: "Stay Synced",
                     description: "Real-time updates across"
                 )
-                .opacity(opacity)
             }
             .padding(.horizontal, 32)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
-                scale = 1.0
-                opacity = 1.0
-            }
         }
     }
 }
@@ -72,9 +73,6 @@ struct OnboardingPage1: View {
 // MARK: - Page 2: Collaboration Features
 
 struct OnboardingPage2: View {
-    @State private var offset: CGFloat = 50
-    @State private var opacity: Double = 0
-
     var body: some View {
         VStack {
             // Illustration
@@ -85,18 +83,20 @@ struct OnboardingPage2: View {
                     .frame(width: 120, height: 120)
 
                 // Main emoji
-                Text("🤝")
-                    .font(.system(size: 90))
-                    .offset(y: offset)
+                Image("collaborate")
+                    .resizable()
+                    .renderingMode(.original)
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 120)
             }
-            .opacity(opacity)
+            .drawingGroup()
 
             VStack(spacing: 16) {
                 Text("Share & Collaborate")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .opacity(opacity)
 
                 Text(
                     "Share lists with anyone using a simple invite link. Everyone stays in sync instantly!"
@@ -106,7 +106,6 @@ struct OnboardingPage2: View {
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
                 .padding(.horizontal, 32)
-                .opacity(opacity)
                 .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -142,13 +141,6 @@ struct OnboardingPage2: View {
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .padding(.horizontal, 32)
-            .opacity(opacity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.1)) {
-                offset = 0
-                opacity = 1.0
-            }
         }
     }
 }
@@ -156,31 +148,30 @@ struct OnboardingPage2: View {
 // MARK: - Page 3: Rewards & Gamification
 
 struct OnboardingPage3: View {
-    @State private var rotation: Double = -10
-    @State private var opacity: Double = 0
-
     var body: some View {
         VStack {
-            // Trophy illustration
+            // Illustration
             ZStack {
                 // Background circles
                 Circle()
                     .fill(Color.white.opacity(0))
                     .frame(width: 120, height: 120)
-                    .blur(radius: 20)
 
-                Text("🏆")
-                    .font(.system(size: 90))
-                    .rotationEffect(.degrees(rotation))
+                // Main emoji
+                Image("trophy")
+                    .resizable()
+                    .renderingMode(.original)
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 120)
             }
-            .opacity(opacity)
+            .drawingGroup()
 
             VStack(spacing: 16) {
                 Text("Level Up!")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .opacity(opacity)
 
                 Text("Complete tasks and unlock exclusive colors and features as you go!")
                     .font(.system(size: 17, weight: .medium))
@@ -188,7 +179,6 @@ struct OnboardingPage3: View {
                     .multilineTextAlignment(.center)
                     .lineSpacing(6)
                     .padding(.horizontal, 32)
-                    .opacity(opacity)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -227,18 +217,6 @@ struct OnboardingPage3: View {
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .padding(.horizontal, 32)
-            .opacity(opacity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.1)) {
-                rotation = 0
-                opacity = 1.0
-            }
-
-            // Subtle continuous rotation
-            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                rotation = 5
-            }
         }
     }
 }

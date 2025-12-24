@@ -17,104 +17,105 @@ struct DeleteAccountView: View {
     @State private var showDeleteConfirmation: Bool = false
 
     var body: some View {
-        VStack(spacing: 32) {
-            // Warning Icon
-            ZStack {
-                Circle()
-                    .fill(Color.red.opacity(0.1))
-                    .frame(width: 100, height: 100)
+        ScrollView {
+            VStack(spacing: 32) {
+                // Warning Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.red.opacity(0.1))
+                        .frame(width: 100, height: 100)
 
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.red)
-            }
-            .padding(.top, 40)
-
-            // Title and Description
-            VStack(spacing: 16) {
-                Text("Delete Account")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.primary)
-
-                Text("This action cannot be undone")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(.secondary)
-            }
-
-            // Warning Information
-            VStack(alignment: .leading, spacing: 16) {
-                Text("What will be deleted:")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.primary)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    DeleteInfoRow(
-                        icon: "person.fill.xmark",
-                        text: "Account and profile information"
-                    )
-                    DeleteInfoRow(
-                        icon: "list.bullet",
-                        text: "All lists you created"
-                    )
-                    DeleteInfoRow(
-                        icon: "checkmark.circle",
-                        text: "All your list items and progress"
-                    )
-                    DeleteInfoRow(
-                        icon: "person.2.slash",
-                        text: "You'll be removed from shared lists"
-                    )
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.red)
                 }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.red.opacity(0.05))
-            )
-            .padding(.horizontal)
+                .padding(.top, 40)
 
-            Spacer()
+                // Title and Description
+                VStack(spacing: 16) {
+                    Text("Delete Account")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.primary)
 
-            // Delete Button
-            VStack(spacing: 20) {
-                Button(action: {
-                    showDeleteConfirmation = true
-                }) {
-                    HStack(spacing: 12) {
-                        if isDeleting {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Image(systemName: "trash.fill")
-                                .font(.system(size: 18, weight: .bold))
-                            Text("Delete My Account")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        Color.red,
-                        in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
-                    )
-                    .shadow(color: Color.red.opacity(0.3), radius: 12, x: 0, y: 6)
-                }
-                .disabled(isDeleting)
-                .padding(.horizontal)
-
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("Cancel")
-                        .font(.system(size: 18, weight: .semibold))
+                    Text("This action cannot be undone")
+                        .font(.system(size: 17, weight: .medium))
                         .foregroundColor(.secondary)
                 }
-                .padding(.bottom, 32)
+
+                // Warning Information
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("What will be deleted:")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.primary)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        DeleteInfoRow(
+                            icon: "person.fill.xmark",
+                            text: "Account and profile information"
+                        )
+                        DeleteInfoRow(
+                            icon: "list.bullet",
+                            text: "All lists you created"
+                        )
+                        DeleteInfoRow(
+                            icon: "checkmark.circle",
+                            text: "All your list items and progress"
+                        )
+                        DeleteInfoRow(
+                            icon: "person.2.slash",
+                            text: "You'll be removed from shared lists"
+                        )
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.red.opacity(0.05))
+                )
+                .padding(.horizontal)
+
+                Spacer()
+
+                // Delete Button
+                VStack(spacing: 20) {
+                    Button(action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        HStack(spacing: 12) {
+                            if isDeleting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "trash.fill")
+                                    .font(.system(size: 18, weight: .bold))
+                                Text("Delete My Account")
+                                    .font(.system(size: 18, weight: .bold))
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            Color.red,
+                            in: RoundedRectangle(cornerRadius: .infinity, style: .continuous)
+                        )
+                        .shadow(color: Color.red.opacity(0.3), radius: 12, x: 0, y: 6)
+                    }
+                    .disabled(isDeleting)
+                    .padding(.horizontal)
+
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Cancel")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 32)
+                }
             }
         }
-
         .navigationTitle("Delete Account")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Delete Account", isPresented: $showDeleteConfirmation) {

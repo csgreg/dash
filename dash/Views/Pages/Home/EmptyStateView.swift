@@ -17,12 +17,15 @@ struct EmptyStateView: View {
             // Icon and Message
             VStack(spacing: 16) {
                 // Empty box icon
-                Image(systemName: "tray")
-                    .font(.system(size: 60, weight: .light))
-                    .foregroundColor(.white.opacity(0.7))
+                Image("faceincloud")
+                    .resizable()
+                    .renderingMode(.original)
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 60)
 
                 VStack(spacing: 8) {
-                    Text("Nothing here yet! 👀")
+                    Text("Nothing here yet!")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
 

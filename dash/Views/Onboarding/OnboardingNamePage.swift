@@ -11,8 +11,6 @@ struct OnboardingNamePage: View {
     @Binding var firstName: String
     var onComplete: () -> Void
 
-    @State private var scale: CGFloat = 0.8
-    @State private var opacity: Double = 0
     @FocusState private var isTextFieldFocused: Bool
 
     private var isValidName: Bool {
@@ -24,25 +22,24 @@ struct OnboardingNamePage: View {
             VStack {
                 // Greeting icon
                 ZStack {
-                    Text("👋")
-                        .font(.system(size: 70))
-                        .scaleEffect(scale)
-                        .padding(.top, 54)
+                    Image("wave")
+                        .resizable()
+                        .renderingMode(.original)
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 120)
                 }
-                .opacity(opacity)
 
                 VStack(spacing: 16) {
                     Text("Nice to meet you!")
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
-                        .opacity(opacity)
 
                     Text("What should we call you?")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white.opacity(0.9))
                         .multilineTextAlignment(.center)
-                        .opacity(opacity)
                 }
                 .padding(.horizontal, 32)
 
@@ -87,8 +84,6 @@ struct OnboardingNamePage: View {
                         .foregroundColor(.white.opacity(0.7))
                 }
                 .padding(.horizontal, 32)
-                .opacity(opacity)
-
                 Spacer()
 
                 // Get Started button
@@ -114,15 +109,9 @@ struct OnboardingNamePage: View {
                 .opacity(isValidName ? 1.0 : 0.5)
                 .padding(.horizontal, 32)
                 .padding(.bottom, 40)
-                .opacity(opacity)
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
-                scale = 1.0
-                opacity = 1.0
-            }
-
             // Auto-focus text field
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isTextFieldFocused = true
