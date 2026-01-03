@@ -14,6 +14,9 @@ struct ListButton: View {
     var allItems: Int = 3
     var completedItems: Int = 3
     var sharedWith: Int = 1
+    var isEditing: Bool = false
+    var onGripDragChanged: ((DragGesture.Value) -> Void)?
+    var onGripDragEnded: ((DragGesture.Value) -> Void)?
 
     private var buttonColor: Color {
         if let colorName = color {
@@ -47,11 +50,30 @@ struct ListButton: View {
                     }
                 }
                 Divider()
-                VStack {
-                    Text("\(allItems) \(allItems > 1 ? "items" : "item")")
-                    if allItems > 0 {
-                        Text("\(completedItems == allItems ? "All" : String(completedItems)) completed")
-                            .customFont(.caption2)
+                Group {
+                    if isEditing {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.85))
+                            .frame(width: 42, height: 42)
+                            .contentShape(Rectangle())
+                            .highPriorityGesture(
+                                DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                                    .onChanged { value in
+                                        onGripDragChanged?(value)
+                                    }
+                                    .onEnded { value in
+                                        onGripDragEnded?(value)
+                                    }
+                            )
+                    } else {
+                        VStack {
+                            Text("\(allItems) \(allItems > 1 ? "items" : "item")")
+                            if allItems > 0 {
+                                Text("\(completedItems == allItems ? "All" : String(completedItems)) completed")
+                                    .customFont(.caption2)
+                            }
+                        }
                     }
                 }
             }
