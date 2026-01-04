@@ -238,11 +238,13 @@ struct HomeView: View {
                             .font(.system(size: 17, weight: .semibold))
                     }
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(isEditing ? "Done" : "Edit") {
-                        isEditing.toggle()
-                        if !isEditing {
-                            saveLocalOrder()
+                if !listManager.lists.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(isEditing ? "Done" : "Edit") {
+                            isEditing.toggle()
+                            if !isEditing {
+                                saveLocalOrder()
+                            }
                         }
                     }
                 }
@@ -258,6 +260,9 @@ struct HomeView: View {
             }
             .onChange(of: listManager.lists.map { $0.id }) { _ in
                 reconcileLocalOrder()
+                if listManager.lists.isEmpty {
+                    isEditing = false
+                }
             }
         }
     }
