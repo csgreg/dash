@@ -44,7 +44,7 @@ struct EmptyStateView: View {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20, weight: .semibold))
 
-                    Text("Create Your First List")
+                    Text("Create Now")
                         .font(.system(size: 18, weight: .semibold))
                 }
                 .foregroundColor(Color("purple"))

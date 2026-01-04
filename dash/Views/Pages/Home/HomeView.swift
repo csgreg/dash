@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var activeListId: String?
     @State private var isEditing: Bool = false
     @StateObject private var rewardsManager = RewardsManager()
+    @Environment(\.colorScheme) private var colorScheme
     @State private var draggingListId: String?
     @State private var dragTranslation: CGSize = .zero
     @State private var dragOriginIndex: Int?
@@ -91,50 +92,67 @@ struct HomeView: View {
         return "Hey, \(firstName)!"
     }
 
-    private var homeHeader: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(headerTitle)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .minimumScaleFactor(0.75)
-                    Text("Here are your lists")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.black.opacity(0.6))
-                }
+    private var headerTextBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(headerTitle)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(.black)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .minimumScaleFactor(0.75)
+            Text("Here are your lists")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.black.opacity(0.6))
+        }
+    }
 
-                Spacer(minLength: 0)
-
-                HStack(spacing: 8) {
-                    Image(systemName: "trophy.fill")
-                        .foregroundColor(Color("purple"))
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("\(rewardsManager.totalItemsCreated)")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
-                        Text("Points")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.black.opacity(0.6))
-                    }
-                }
-                .padding(.vertical, 10)
-                .padding(.horizontal, 12)
-                .background(Color.white.opacity(0.9))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.black.opacity(0.06), lineWidth: 1)
-                )
+    private var pointsPill: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "trophy.fill")
+                .foregroundColor(Color("purple"))
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(rewardsManager.totalItemsCreated)")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                Text("Points")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.black.opacity(0.6))
             }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .background(Color.black.opacity(0.03))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private var homeHeaderContent: some View {
+        HStack(alignment: .top, spacing: 12) {
+            headerTextBlock
+
+            Spacer(minLength: 0)
+
+            pointsPill
+        }
+    }
+
+    private var homeHeader: some View {
+        let shape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+        return VStack(alignment: .leading, spacing: 16) {
+            homeHeaderContent
         }
         .padding(.horizontal, 20)
         .padding(.top, 22)
         .padding(.bottom, 28)
         .background(Color.white)
-        .clipShape(HomeHeaderShape(curveDepth: 40, cornerRadius: 28))
+        .clipShape(shape)
+        .overlay(
+            shape
+                .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+        )
         .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 10)
         .padding(.horizontal, 16)
         .padding(.top, 8)
