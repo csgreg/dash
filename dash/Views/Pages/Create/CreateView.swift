@@ -21,7 +21,7 @@ struct CreateView: View {
     @State var showColorModal: Bool = false
 
     @EnvironmentObject var listManager: ListManager
-    @StateObject private var rewardsManager = RewardsManager()
+    @EnvironmentObject private var rewardsManager: RewardsManager
     @Environment(\.colorScheme) private var colorScheme
 
     private var isValidInput: Bool {
@@ -31,22 +31,25 @@ struct CreateView: View {
         return false
     }
 
+    private func performCreate() {
+        listManager.createList(
+            listName: listName, emoji: selectedEmoji, color: selectedColor
+        ) { success, message in
+            if success {
+                self.listName = ""
+                self.selectedEmoji = nil
+                self.selectedColor = "purple"
+                selectedTab = 0
+            } else {
+                self.errorMessage = message
+                self.showErrorAlert = true
+            }
+        }
+    }
+
     private var createButton: some View {
         Button(action: {
-            listManager.createList(
-                listName: self.listName, emoji: self.selectedEmoji, color: self.selectedColor
-            ) { success, message in
-                if success {
-                    // Reset form and navigate to home on success
-                    self.listName = ""
-                    self.selectedEmoji = nil
-                    self.selectedColor = "purple"
-                    selectedTab = 0
-                } else {
-                    self.errorMessage = message
-                    self.showErrorAlert = true
-                }
-            }
+            performCreate()
         }) {
             createButtonLabel
         }
@@ -55,6 +58,29 @@ struct CreateView: View {
         .opacity(isValidInput ? 1.0 : 0.5)
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
+    }
+
+    private var createButtonInline: some View {
+        Button(action: {
+            performCreate()
+        }) {
+            HStack(spacing: 10) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 18, weight: .bold))
+                Text("Create")
+                    .font(.system(size: 16, weight: .bold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(buttonGradient)
+            .cornerRadius(.infinity)
+            .shadow(color: Color("purple").opacity(0.25), radius: 10, x: 0, y: 6)
+        }
+        .buttonStyle(.plain)
+        .modifier(GlassEffectIfAvailable())
+        .disabled(!isValidInput)
+        .opacity(isValidInput ? 1.0 : 0.5)
     }
 
     private var createButtonLabel: some View {
@@ -84,12 +110,53 @@ struct CreateView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 createHeader
+                styleHintCard
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 100)
+                Color.clear.frame(height: 40)
             }
         }
+    }
+
+    private var styleHintCard: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.18))
+                Image(systemName: "paintbrush.pointed.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 38, height: 38)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Make it now. Remix it later.")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("You can update your list anytime in its settings. Go full neon. Go minimal. Your list, your vibe.")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.92))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white.opacity(0.92))
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 16)
+        .background(buttonGradient)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+        )
+        .shadow(color: Color("purple").opacity(0.25), radius: 14, x: 0, y: 10)
+        .padding(.horizontal, 16)
     }
 
     private var createHeader: some View {
@@ -143,6 +210,8 @@ struct CreateView: View {
 
             listNameSection
             customizationSection
+
+            createButtonInline
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 18)
@@ -202,7 +271,12 @@ struct CreateView: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
-            .modifier(GlassEffectIfAvailable())
+            .background(colorScheme == .dark ? Color.white.opacity(0.06) : Color.black.opacity(0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.06), lineWidth: 1)
+            )
         }
     }
 
@@ -212,9 +286,60 @@ struct CreateView: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.secondary)
 
-            VStack(spacing: 12) {
-                EmojiSelectorButton(selectedEmoji: selectedEmoji, showModal: $showEmojiModal)
-                ColorSelectorButton(selectedColor: selectedColor, showModal: $showColorModal)
+            HStack(spacing: 12) {
+                Button(action: {
+                    withAnimation {
+                        showEmojiModal = true
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(buttonGradient)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.white.opacity(0.22), lineWidth: 1)
+                            )
+
+                        if let emoji = selectedEmoji {
+                            Text(emoji)
+                                .font(.system(size: 26))
+                        } else {
+                            Image(systemName: "face.smiling")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .frame(width: 56, height: 56)
+                    .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+
+                Button(action: {
+                    withAnimation {
+                        showColorModal = true
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(selectedColor ?? "purple"))
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.10), lineWidth: 1)
+                            )
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color("purple").opacity(0.35), lineWidth: 3)
+                                    .opacity((selectedColor ?? "purple") == "purple" ? 0 : 0.0)
+                            )
+
+                        Image(systemName: "paintpalette.fill")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .frame(width: 56, height: 56)
+                    .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -226,25 +351,16 @@ struct CreateView: View {
                     .ignoresSafeArea()
 
                 formScrollView
-
-                // Fixed bottom button
-                VStack {
-                    Spacer()
-                    createButton
-                }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
-                        Text("Create new list")
+                        Text("Create list")
                             .font(.system(size: 17, weight: .semibold))
                     }
                 }
-            }
-            .onAppear {
-                rewardsManager.fetchUserItemCount(from: listManager)
             }
             .overlay(
                 Group {

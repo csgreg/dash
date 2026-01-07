@@ -14,9 +14,15 @@ struct MainView: View {
 
     @Binding var selectedTab: Bool
     @State private var currentTab: Int = 0
+    @StateObject private var rewardsManager: RewardsManager
+
+    @EnvironmentObject private var listManager: ListManager
 
     init(selectedTab: Binding<Bool> = .constant(false)) {
         _selectedTab = selectedTab
+
+        let storedUserId = UserDefaults.standard.string(forKey: "uid") ?? ""
+        _rewardsManager = StateObject(wrappedValue: RewardsManager(userId: storedUserId))
     }
 
     var body: some View {
@@ -49,6 +55,7 @@ struct MainView: View {
                 }
                 .tag(3)
         }
+        .environmentObject(rewardsManager)
         .onChange(of: currentTab) { _, newTab in
             logTabChange(newTab)
         }
@@ -63,6 +70,7 @@ struct MainView: View {
         }
         .onAppear {
             AppLogger.ui.notice("App session started")
+            rewardsManager.bootstrapFetchIfNeeded(from: listManager)
         }
     }
 

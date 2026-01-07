@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct RewardsView: View {
-    @EnvironmentObject var listManager: ListManager
-    @StateObject private var rewardsManager = RewardsManager()
+    @EnvironmentObject private var rewardsManager: RewardsManager
 
     var body: some View {
         NavigationView {
@@ -120,9 +119,6 @@ struct RewardsView: View {
                         .font(.system(size: 17, weight: .semibold))
                 }
             }
-        }
-        .onAppear {
-            rewardsManager.fetchUserItemCount(from: listManager)
         }
     }
 }

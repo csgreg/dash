@@ -12,10 +12,10 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var listManager: ListManager
+    @EnvironmentObject private var rewardsManager: RewardsManager
     @State private var firstName: String = ""
     @State private var activeListId: String?
     @State private var isEditing: Bool = false
-    @StateObject private var rewardsManager = RewardsManager()
     @Environment(\.colorScheme) private var colorScheme
     @State private var draggingListId: String?
     @State private var dragTranslation: CGSize = .zero
@@ -23,6 +23,7 @@ struct HomeView: View {
     @State private var dragCurrentIndex: Int?
     @State private var dragStartLocationY: CGFloat?
     @State private var localListOrder: [String] = []
+    @State private var didLoadLocalOrder: Bool = false
     @Binding var selectedTab: Int
 
     private let listButtonHeight: CGFloat = 100
@@ -254,11 +255,11 @@ struct HomeView: View {
                 firstName = UserManager.getCachedFirstName()
                 // Then fetch from Firestore to sync any updates
                 loadUserName()
-                rewardsManager.fetchUserItemCount(from: listManager)
                 activeListId = nil
                 loadLocalOrderIfNeeded()
             }
             .onChange(of: listManager.lists.map { $0.id }) { _ in
+                loadLocalOrderIfNeeded()
                 reconcileLocalOrder()
                 if listManager.lists.isEmpty {
                     isEditing = false
@@ -322,15 +323,21 @@ struct HomeView: View {
     }
 
     private func loadLocalOrderIfNeeded() {
-        guard localListOrder.isEmpty else {
+        guard !didLoadLocalOrder else {
             return
         }
         let decoded = loadLocalOrder()
         localListOrder = decoded
-        reconcileLocalOrder()
+        didLoadLocalOrder = true
+        if !listManager.lists.isEmpty {
+            reconcileLocalOrder()
+        }
     }
 
     private func reconcileLocalOrder() {
+        guard !listManager.lists.isEmpty else {
+            return
+        }
         let existingIds = Set(listManager.lists.map { $0.id })
         let filtered = localListOrder.filter { existingIds.contains($0) }
         let missing = listManager.lists.map { $0.id }.filter { !filtered.contains($0) }
@@ -350,6 +357,9 @@ struct HomeView: View {
     }
 
     private func saveLocalOrder() {
+        guard didLoadLocalOrder else {
+            return
+        }
         guard let data = try? JSONEncoder().encode(localListOrder) else {
             return
         }

@@ -10,6 +10,7 @@ import SwiftUI
 struct ListSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var listManager: ListManager
+    @EnvironmentObject private var rewardsManager: RewardsManager
 
     let listId: String
     let currentName: String
@@ -23,7 +24,6 @@ struct ListSettingsView: View {
     @State private var showColorModal: Bool = false
     @State private var showErrorAlert: Bool = false
     @State private var errorMessage: String = ""
-    @StateObject private var rewardsManager = RewardsManager()
 
     init(listId: String, currentName: String, currentEmoji: String?, currentColor: String?) {
         self.listId = listId
@@ -97,9 +97,6 @@ struct ListSettingsView: View {
             } message: {
                 Text(errorMessage)
             }
-        }
-        .onAppear {
-            rewardsManager.fetchUserItemCount(from: listManager)
         }
     }
 

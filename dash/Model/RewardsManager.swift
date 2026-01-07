@@ -20,6 +20,8 @@ struct Reward: Identifiable {
 }
 
 class RewardsManager: ObservableObject {
+    private let userId: String
+
     @Published var totalItemsCreated: Int = 0 {
         didSet {
             checkForNewRewards(oldValue: oldValue)
@@ -27,6 +29,35 @@ class RewardsManager: ObservableObject {
     }
 
     private var unlockedRewards: Set<String> = []
+    private var didFetchFromFirestoreThisSession: Bool = false
+    private var totalItemsObserver: NSObjectProtocol?
+
+    init(userId: String) {
+        self.userId = userId
+        totalItemsCreated = UserManager.getCachedTotalItemsCreated(userId: userId)
+
+        totalItemsObserver = NotificationCenter.default.addObserver(
+            forName: .totalItemsCreatedDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self else { return }
+            guard let changedUserId = notification.userInfo?["userId"] as? String,
+                  changedUserId == self.userId,
+                  let count = notification.userInfo?["count"] as? Int
+            else {
+                return
+            }
+
+            self.totalItemsCreated = count
+        }
+    }
+
+    deinit {
+        if let totalItemsObserver {
+            NotificationCenter.default.removeObserver(totalItemsObserver)
+        }
+    }
 
     // Reward tiers with unlockable colors
     let rewards: [Reward] = [
@@ -120,6 +151,14 @@ class RewardsManager: ObservableObject {
                 AppLogger.rewards.info("Item count loaded: \(count, privacy: .public)")
             }
         }
+    }
+
+    func bootstrapFetchIfNeeded(from listManager: ListManager) {
+        guard !didFetchFromFirestoreThisSession else {
+            return
+        }
+        didFetchFromFirestoreThisSession = true
+        fetchUserItemCount(from: listManager)
     }
 
     // Check if user unlocked new rewards

@@ -11,6 +11,10 @@ import Foundation
 import OSLog
 import SwiftUI
 
+extension Notification.Name {
+    static let totalItemsCreatedDidChange = Notification.Name("totalItemsCreatedDidChange")
+}
+
 class UserManager {
     private let firestore = Firestore.firestore()
     private let userId: String
@@ -36,6 +40,19 @@ class UserManager {
     static func clearCachedFirstName() {
         UserDefaults.standard.removeObject(forKey: "cachedFirstName")
         AppLogger.database.debug("Cleared cached first name")
+    }
+
+    static func getCachedTotalItemsCreated(userId: String) -> Int {
+        UserDefaults.standard.integer(forKey: "cachedTotalItemsCreated_\(userId)")
+    }
+
+    static func cacheTotalItemsCreated(_ count: Int, userId: String) {
+        UserDefaults.standard.set(count, forKey: "cachedTotalItemsCreated_\(userId)")
+        NotificationCenter.default.post(
+            name: .totalItemsCreatedDidChange,
+            object: nil,
+            userInfo: ["userId": userId, "count": count]
+        )
     }
 
     // MARK: - User Profile
@@ -78,6 +95,9 @@ class UserManager {
     // MARK: - User Stats
 
     func incrementItemCount() {
+        let cached = UserManager.getCachedTotalItemsCreated(userId: userId)
+        UserManager.cacheTotalItemsCreated(cached + 1, userId: userId)
+
         let userRef = firestore.collection("users").document(userId)
 
         AppLogger.database.debug("Incrementing item count")
@@ -103,9 +123,11 @@ class UserManager {
             if let document = document, document.exists {
                 let count = document.data()?["totalItemsCreated"] as? Int ?? 0
                 AppLogger.database.info("Fetched item count: \(count, privacy: .public)")
+                UserManager.cacheTotalItemsCreated(count, userId: self.userId)
                 completion(count)
             } else {
                 AppLogger.database.debug("User document doesn't exist, returning 0")
+                UserManager.cacheTotalItemsCreated(0, userId: self.userId)
                 completion(0)
             }
         }

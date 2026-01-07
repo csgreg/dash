@@ -5,6 +5,7 @@
 //  Created by Gergo Csizmadia on 2023. 03. 19.
 //
 
+import Foundation
 import SwiftUI
 
 struct ListDetailsView: View {
@@ -12,6 +13,8 @@ struct ListDetailsView: View {
     @State private var editingItemId: String?
     @State private var editingText: String = ""
     @State private var isSavingEdit: Bool = false
+    @State private var collapsedHeaderIds: Set<String> = []
+    @State private var didLoadCollapsedState: Bool = false
     @State private var showClearConfirmation = false
     @State private var showDeleteConfirmation = false
     @State private var showLeaveConfirmation = false
@@ -24,6 +27,7 @@ struct ListDetailsView: View {
     }
 
     @FocusState private var focusedField: FocusField?
+    @Environment(\.editMode) private var editMode
 
     let listId: String
 
@@ -64,6 +68,7 @@ struct ListDetailsView: View {
         .navigationBarBackButtonHidden(showListDetailsOnboarding)
         .toolbar(showListDetailsOnboarding ? .hidden : .visible, for: .tabBar)
         .onAppear {
+            loadCollapsedStateIfNeeded()
             if !hasSeenListDetailsOnboarding {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -71,6 +76,14 @@ struct ListDetailsView: View {
                     }
                 }
             }
+        }
+        .onChange(of: collapsedHeaderIds) { _ in
+            guard didLoadCollapsedState else { return }
+            saveCollapsedState()
+        }
+        .onChange(of: itemsSignature) { _ in
+            loadCollapsedStateIfNeeded()
+            pruneCollapsedHeaderIdsIfNeeded()
         }
     }
 
@@ -114,20 +127,32 @@ struct ListDetailsView: View {
             } else {
                 List {
                     ForEach(list?.items ?? []) { item in
-                        ItemView(
-                            item: item,
-                            listId: listId,
-                            editingItemId: editingItemId,
-                            editingText: $editingText,
-                            isEditInteractionDisabled: isSavingEdit || (editingItemId != nil && editingItemId != item.id),
-                            onStartEditing: { tappedItem in
-                                startEditing(tappedItem)
-                            },
-                            onSaveEditing: {
-                                saveEditingIfNeeded()
-                            },
-                            focusedField: $focusedField
-                        )
+                        Group {
+                            if visibleItemIds.contains(item.id) {
+                                ItemView(
+                                    item: item,
+                                    listId: listId,
+                                    isHeaderCollapsed: collapsedHeaderIds.contains(item.id),
+                                    isSectionCollapseDisabled: isReordering || !headerHasChildren(item),
+                                    onToggleKind: { tappedItem in
+                                        toggleItemKind(tappedItem)
+                                    },
+                                    onToggleCollapse: { tappedItem in
+                                        toggleHeaderCollapse(tappedItem)
+                                    },
+                                    editingItemId: editingItemId,
+                                    editingText: $editingText,
+                                    isEditInteractionDisabled: isSavingEdit || (editingItemId != nil && editingItemId != item.id),
+                                    onStartEditing: { tappedItem in
+                                        startEditing(tappedItem)
+                                    },
+                                    onSaveEditing: {
+                                        saveEditingIfNeeded()
+                                    },
+                                    focusedField: $focusedField
+                                )
+                            }
+                        }
                     }
                     .onMove { from, moveTo in
                         guard let listIndex = listManager.lists.firstIndex(where: { $0.id == listId }) else {
@@ -274,7 +299,7 @@ struct ListDetailsView: View {
                                     },
                                     label: {
                                         Image(systemName: "slider.horizontal.3")
-                                        Text("List Settings")
+                                        Text("Settings")
                                     }
                                 )
 
@@ -465,6 +490,96 @@ struct ListDetailsView: View {
                 self.editingText = ""
             }
         }
+    }
+}
+
+private extension ListDetailsView {
+    var isReordering: Bool {
+        editMode?.wrappedValue == .active
+    }
+
+    var visibleItemIds: Set<String> {
+        guard !isReordering else {
+            return Set(list?.items.map { $0.id } ?? [])
+        }
+
+        var visible = Set<String>()
+        var isCollapsed = false
+        for item in list?.items ?? [] {
+            if item.kind == .header {
+                isCollapsed = collapsedHeaderIds.contains(item.id)
+                visible.insert(item.id)
+            } else {
+                if !isCollapsed {
+                    visible.insert(item.id)
+                }
+            }
+        }
+        return visible
+    }
+
+    var collapsedStorageKey: String {
+        "collapsedHeaderIds.\(listId)"
+    }
+
+    var itemsSignature: String {
+        (list?.items ?? []).map { "\($0.id):\($0.kind.rawValue)" }.joined(separator: "|")
+    }
+
+    func loadCollapsedStateIfNeeded() {
+        guard !didLoadCollapsedState else { return }
+        let stored = UserDefaults.standard.array(forKey: collapsedStorageKey) as? [String] ?? []
+        collapsedHeaderIds = Set(stored)
+        didLoadCollapsedState = true
+        pruneCollapsedHeaderIdsIfNeeded()
+    }
+
+    func saveCollapsedState() {
+        UserDefaults.standard.set(Array(collapsedHeaderIds), forKey: collapsedStorageKey)
+    }
+
+    func pruneCollapsedHeaderIdsIfNeeded() {
+        let validHeaderIds = Set((list?.items ?? []).filter { $0.kind == .header }.map { $0.id })
+        let pruned = collapsedHeaderIds.intersection(validHeaderIds)
+        if pruned != collapsedHeaderIds {
+            collapsedHeaderIds = pruned
+        }
+    }
+
+    func headerHasChildren(_ header: Item) -> Bool {
+        guard header.kind == .header else { return false }
+        guard let items = list?.items, let headerIndex = items.firstIndex(where: { $0.id == header.id }) else { return false }
+
+        let nextIndex = items.index(after: headerIndex)
+        guard nextIndex < items.endIndex else { return false }
+        for item in items[nextIndex...] {
+            if item.kind == .header {
+                return false
+            }
+            return true
+        }
+        return false
+    }
+
+    func toggleHeaderCollapse(_ header: Item) {
+        guard header.kind == .header else { return }
+        if collapsedHeaderIds.contains(header.id) {
+            collapsedHeaderIds.remove(header.id)
+        } else {
+            collapsedHeaderIds.insert(header.id)
+        }
+    }
+
+    func toggleItemKind(_ item: Item) {
+        guard !isSavingEdit else { return }
+        guard editingItemId == nil || editingItemId == item.id else { return }
+
+        let newKind: Item.Kind = (item.kind == .header) ? .task : .header
+        if newKind == .task {
+            collapsedHeaderIds.remove(item.id)
+        }
+
+        listManager.updateItemKind(listId: listId, itemId: item.id, kind: newKind)
     }
 }
 

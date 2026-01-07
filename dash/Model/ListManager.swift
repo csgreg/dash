@@ -30,12 +30,37 @@ class ListManager: ObservableObject {
         }
     }
 
+    func updateItemKind(listId: String, itemId: String, kind: Item.Kind, completion: ((Error?) -> Void)? = nil) {
+        let itemRef = firestore.collection("lists").document(listId)
+            .collection("items").document(itemId)
+
+        var data: [String: Any] = [
+            "kind": kind.rawValue,
+        ]
+
+        if kind == .header {
+            data["done"] = false
+        }
+
+        itemRef.updateData(data) { error in
+            if let error = error {
+                AppLogger.database.error("Failed to update item kind: \(error.localizedDescription)")
+                completion?(error)
+            } else {
+                AppLogger.database.debug("Item kind updated")
+                completion?(nil)
+            }
+        }
+    }
+
     deinit {
         AppLogger.database.debug("ListManager deallocated, removing listeners")
         listenerRegistration?.remove()
         itemListeners.values.forEach { $0.remove() }
     }
+}
 
+extension ListManager {
     func fetchLists() async {
         AppLogger.database.info("Setting up lists listener")
         listenerRegistration?.remove()
@@ -164,7 +189,9 @@ class ListManager: ObservableObject {
         let text = data["text"] as? String ?? ""
         let done = data["done"] as? Bool ?? false
         let order = data["order"] as? Int ?? 0
-        return Item(id: itemId, text: text, done: done, order: order)
+        let kindRawValue = data["kind"] as? String
+        let kind = Item.Kind(rawValue: kindRawValue ?? Item.Kind.task.rawValue) ?? .task
+        return Item(id: itemId, text: text, done: done, order: order, kind: kind)
     }
 
     /// Generates a unique 8-character alphanumeric join code
@@ -301,6 +328,7 @@ class ListManager: ObservableObject {
             "text": item.text,
             "done": item.done,
             "order": item.order,
+            "kind": item.kind.rawValue,
         ]) { err in
             if let err = err {
                 AppLogger.database.error("Failed to add item: \(err.localizedDescription)")
@@ -491,7 +519,7 @@ class ListManager: ObservableObject {
 
     func markAllItemsAsDone(listId: String) {
         guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
-        let items = lists[listIndex].items
+        let items = lists[listIndex].items.filter { $0.kind == .task }
 
         let batch = firestore.batch()
 
@@ -512,7 +540,7 @@ class ListManager: ObservableObject {
 
     func markAllItemsAsUndone(listId: String) {
         guard let listIndex = lists.firstIndex(where: { $0.id == listId }) else { return }
-        let items = lists[listIndex].items
+        let items = lists[listIndex].items.filter { $0.kind == .task }
 
         let batch = firestore.batch()
 
