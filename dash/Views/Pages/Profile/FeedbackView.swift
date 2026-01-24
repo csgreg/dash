@@ -180,7 +180,7 @@ struct FeedbackView: View {
             "type": feedbackType.rawValue,
             "message": feedbackText,
             "timestamp": FieldValue.serverTimestamp(),
-            "appVersion": "1.0.0",
+            "appVersion": "1.2.0",
             "status": "new",
         ]
 

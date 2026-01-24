@@ -15,6 +15,7 @@ struct MainView: View {
     @Binding var selectedTab: Bool
     @State private var currentTab: Int = 0
     @StateObject private var rewardsManager: RewardsManager
+    @State private var hasLoadedFirstName: Bool = false
 
     @EnvironmentObject private var listManager: ListManager
 
@@ -26,36 +27,53 @@ struct MainView: View {
     }
 
     var body: some View {
-        TabView(selection: $currentTab) {
-            HomeView(selectedTab: $currentTab)
-                .tabItem {
-                    Image(systemName: "house")
-                    Text("Lists")
-                }
-                .tag(0)
+        ZStack {
+            TabView(selection: $currentTab) {
+                HomeView(selectedTab: $currentTab)
+                    .tabItem {
+                        Image(systemName: "house")
+                        Text("Lists")
+                    }
+                    .tag(0)
 
-            CreateView(selectedTab: $currentTab)
-                .tabItem {
-                    Image(systemName: "plus.square.fill.on.square.fill")
-                    Text("Create")
-                }
-                .tag(1)
+                CreateView(selectedTab: $currentTab)
+                    .tabItem {
+                        Image(systemName: "plus.square.fill.on.square.fill")
+                        Text("Create")
+                    }
+                    .tag(1)
 
-            RewardsView()
-                .tabItem {
-                    Image(systemName: "trophy.fill")
-                    Text("Rewards")
-                }
-                .tag(2)
+                RewardsView()
+                    .tabItem {
+                        Image(systemName: "trophy.fill")
+                        Text("Rewards")
+                    }
+                    .tag(2)
 
-            ProfileView()
-                .tabItem {
-                    Image(systemName: "person.crop.circle.fill")
-                    Text("Profile")
+                ProfileView()
+                    .tabItem {
+                        Image(systemName: "person.crop.circle.fill")
+                        Text("Profile")
+                    }
+                    .tag(3)
+            }
+            .environmentObject(rewardsManager)
+
+            if shouldShowSessionLoading {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("Loading your data…")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.secondary)
                 }
-                .tag(3)
+                .padding(.vertical, 18)
+                .padding(.horizontal, 22)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
         }
-        .environmentObject(rewardsManager)
         .onChange(of: currentTab) { _, newTab in
             logTabChange(newTab)
         }
@@ -71,6 +89,22 @@ struct MainView: View {
         .onAppear {
             AppLogger.ui.notice("App session started")
             rewardsManager.bootstrapFetchIfNeeded(from: listManager)
+            bootstrapFirstNameIfNeeded()
+        }
+    }
+
+    private var shouldShowSessionLoading: Bool {
+        !listManager.hasLoadedInitialLists || !rewardsManager.hasLoadedPoints || !hasLoadedFirstName
+    }
+
+    private func bootstrapFirstNameIfNeeded() {
+        guard !userID.isEmpty else {
+            return
+        }
+        UserManager(userId: userID).fetchUserFirstName { _ in
+            DispatchQueue.main.async {
+                self.hasLoadedFirstName = true
+            }
         }
     }
 

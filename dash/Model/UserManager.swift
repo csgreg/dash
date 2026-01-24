@@ -58,6 +58,11 @@ class UserManager {
     // MARK: - User Profile
 
     func fetchUserFirstName(completion: @escaping (String) -> Void) {
+        guard !userId.isEmpty else {
+            AppLogger.database.error("fetchUserFirstName called with empty userId")
+            completion("")
+            return
+        }
         let userRef = firestore.collection("users").document(userId)
 
         userRef.getDocument { document, _ in
@@ -72,9 +77,37 @@ class UserManager {
         }
     }
 
+    func incrementItemCountRemoteOnly() {
+        guard !userId.isEmpty else {
+            AppLogger.database.error("incrementItemCountRemoteOnly called with empty userId")
+            return
+        }
+
+        let userRef = firestore.collection("users").document(userId)
+
+        AppLogger.database.debug("Incrementing item count (remote only)")
+
+        userRef.setData([
+            "totalItemsCreated": FieldValue.increment(Int64(1)),
+            "userId": userId,
+        ], merge: true) { error in
+            if let error = error {
+                AppLogger.database.error("Failed to increment item count (remote only): \(error.localizedDescription)")
+            } else {
+                AppLogger.database.info("Item count incremented (remote only)")
+            }
+        }
+    }
+
     func saveUserFirstName(_ firstName: String, completion: @escaping (Error?) -> Void) {
         // Cache immediately for instant access
         UserManager.cacheFirstName(firstName)
+
+        guard !userId.isEmpty else {
+            AppLogger.database.error("saveUserFirstName called with empty userId")
+            completion(NSError(domain: "UserManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Empty userId"]))
+            return
+        }
 
         let userRef = firestore.collection("users").document(userId)
 
@@ -95,6 +128,10 @@ class UserManager {
     // MARK: - User Stats
 
     func incrementItemCount() {
+        guard !userId.isEmpty else {
+            AppLogger.database.error("incrementItemCount called with empty userId")
+            return
+        }
         let cached = UserManager.getCachedTotalItemsCreated(userId: userId)
         UserManager.cacheTotalItemsCreated(cached + 1, userId: userId)
 
@@ -115,13 +152,28 @@ class UserManager {
     }
 
     func fetchUserItemCount(completion: @escaping (Int) -> Void) {
+        guard !userId.isEmpty else {
+            AppLogger.database.error("fetchUserItemCount called with empty userId")
+            completion(0)
+            return
+        }
         let userRef = firestore.collection("users").document(userId)
 
         AppLogger.database.debug("Fetching item count")
 
         userRef.getDocument { document, _ in
             if let document = document, document.exists {
-                let count = document.data()?["totalItemsCreated"] as? Int ?? 0
+                let rawCount = document.data()?["totalItemsCreated"]
+                let count: Int
+                if let value = rawCount as? Int {
+                    count = value
+                } else if let value = rawCount as? Int64 {
+                    count = Int(value)
+                } else if let value = rawCount as? NSNumber {
+                    count = value.intValue
+                } else {
+                    count = 0
+                }
                 AppLogger.database.info("Fetched item count: \(count, privacy: .public)")
                 UserManager.cacheTotalItemsCreated(count, userId: self.userId)
                 completion(count)
@@ -136,6 +188,11 @@ class UserManager {
     // MARK: - Account Deletion
 
     func deleteUserDocument(completion: @escaping (Error?) -> Void) {
+        guard !userId.isEmpty else {
+            AppLogger.database.error("deleteUserDocument called with empty userId")
+            completion(NSError(domain: "UserManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Empty userId"]))
+            return
+        }
         let userRef = firestore.collection("users").document(userId)
 
         userRef.delete { error in

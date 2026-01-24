@@ -21,6 +21,7 @@ class ListManager: ObservableObject {
     @Published var lists: [Listy] = []
     @Published var currentListIndex = 0
     @Published var isLoading: Bool = true
+    @Published var hasLoadedInitialLists: Bool = false
 
     init(userId: String) {
         self.userId = userId
@@ -65,6 +66,11 @@ extension ListManager {
         AppLogger.database.info("Setting up lists listener")
         listenerRegistration?.remove()
 
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.hasLoadedInitialLists = false
+        }
+
         listenerRegistration = firestore.collection("lists").whereField("users", arrayContains: userId)
             .addSnapshotListener { [weak self] querySnapshot, error in
                 guard let self = self else { return }
@@ -73,50 +79,60 @@ extension ListManager {
                     if let error = error {
                         AppLogger.database.error("Failed to fetch lists: \(error.localizedDescription)")
                     }
+                    DispatchQueue.main.async {
+                        self.hasLoadedInitialLists = true
+                        self.isLoading = false
+                    }
                     return
                 }
 
-                // Process only document changes instead of rebuilding entire list
-                for diff in snapshot.documentChanges {
-                    let data = diff.document.data()
-                    let documentID = diff.document.documentID
+                DispatchQueue.main.async {
+                    // Process only document changes instead of rebuilding entire list
+                    for diff in snapshot.documentChanges {
+                        let data = diff.document.data()
+                        let documentID = diff.document.documentID
 
-                    switch diff.type {
-                    case .added:
-                        // Parse and add new list (without items)
-                        let list = self.parseList(documentID: documentID, data: data)
-                        self.lists.append(list)
-                        AppLogger.database.notice("List added: \(list.name, privacy: .public)")
-                        AppLogger.database.debug("List members: \(list.users.count)")
-                        // Start listening to items subcollection
-                        self.listenToItems(for: documentID)
+                        switch diff.type {
+                        case .added:
+                            // Parse and add new list (without items)
+                            let list = self.parseList(documentID: documentID, data: data)
+                            self.lists.append(list)
+                            AppLogger.database.notice("List added: \(list.name, privacy: .public)")
+                            AppLogger.database.debug("List members: \(list.users.count)")
+                            // Start listening to items subcollection
+                            self.listenToItems(for: documentID)
 
-                    case .modified:
-                        // Update existing list metadata (preserve items)
-                        if let index = self.lists.firstIndex(where: { $0.id == documentID }) {
-                            let name = data["name"] as? String ?? ""
-                            let emoji = data["emoji"] as? String
-                            let color = data["color"] as? String
-                            let users = data["users"] as? [String] ?? []
-                            let creatorId = data["creatorId"] as? String
-                            self.lists[index].name = name
-                            self.lists[index].emoji = emoji
-                            self.lists[index].color = color
-                            self.lists[index].users = users
-                            self.lists[index].creatorId = creatorId
-                            AppLogger.database.info("List modified: \(name, privacy: .public)")
+                        case .modified:
+                            // Update existing list metadata (preserve items)
+                            if let index = self.lists.firstIndex(where: { $0.id == documentID }) {
+                                let name = data["name"] as? String ?? ""
+                                let emoji = data["emoji"] as? String
+                                let color = data["color"] as? String
+                                let users = data["users"] as? [String] ?? []
+                                let creatorId = data["creatorId"] as? String
+                                self.lists[index].name = name
+                                self.lists[index].emoji = emoji
+                                self.lists[index].color = color
+                                self.lists[index].users = users
+                                self.lists[index].creatorId = creatorId
+                                AppLogger.database.info("List modified: \(name, privacy: .public)")
+                            }
+
+                        case .removed:
+                            // Remove list and stop listening to items
+                            self.itemListeners[documentID]?.remove()
+                            self.itemListeners.removeValue(forKey: documentID)
+                            self.lists.removeAll(where: { $0.id == documentID })
+                            AppLogger.database.notice("List removed")
                         }
+                    }
 
-                    case .removed:
-                        // Remove list and stop listening to items
-                        self.itemListeners[documentID]?.remove()
-                        self.itemListeners.removeValue(forKey: documentID)
-                        self.lists.removeAll(where: { $0.id == documentID })
-                        AppLogger.database.notice("List removed")
+                    if !self.hasLoadedInitialLists {
+                        self.hasLoadedInitialLists = true
+                        self.isLoading = false
                     }
                 }
             }
-        isLoading = false
     }
 
     /// Parses Firestore document data into a Listy object (without items)
@@ -324,6 +340,11 @@ extension ListManager {
         let itemRef = firestore.collection("lists").document(listId)
             .collection("items").document(item.id)
 
+        if item.kind == .task {
+            let cached = UserManager.getCachedTotalItemsCreated(userId: userId)
+            UserManager.cacheTotalItemsCreated(cached + 1, userId: userId)
+        }
+
         itemRef.setData([
             "text": item.text,
             "done": item.done,
@@ -334,8 +355,9 @@ extension ListManager {
                 AppLogger.database.error("Failed to add item: \(err.localizedDescription)")
             } else {
                 AppLogger.database.notice("Item added")
-                // Increment user's total items created count
-                self.incrementUserItemCount()
+                if item.kind == .task {
+                    UserManager(userId: self.userId).incrementItemCountRemoteOnly()
+                }
             }
         }
     }

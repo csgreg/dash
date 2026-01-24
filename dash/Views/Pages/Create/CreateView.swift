@@ -217,15 +217,7 @@ struct CreateView: View {
         .padding(.horizontal, 18)
         .padding(.top, 22)
         .padding(.bottom, 28)
-        .background(colorScheme == .dark ? Color(.secondarySystemBackground) : Color.white)
-        .clipShape(shape)
-        .overlay(
-            shape
-                .strokeBorder(
-                    colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06), lineWidth: 1
-                )
-        )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08), radius: 16, x: 0, y: 10)
+        .dashCardStyle(shape)
         .padding(.horizontal, 16)
         .padding(.top, 8)
     }
@@ -357,7 +349,7 @@ struct CreateView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
-                        Text("Create list")
+                        Text("Create")
                             .font(.system(size: 17, weight: .semibold))
                     }
                 }

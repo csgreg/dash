@@ -110,18 +110,22 @@ struct LoginView: View {
                 loading = true
                 AppLogger.auth.info("Email/password sign-in attempt")
                 Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
-                    if let error = error {
-                        AppLogger.auth.error("Email/password sign-in failed: \(error.localizedDescription)")
-                        signInFail = true
-                    }
-
-                    if let authResult = authResult {
-                        AppLogger.auth.notice("Email/password sign-in successful")
-                        withAnimation {
-                            userID = authResult.user.uid
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            AppLogger.auth.error("Email/password sign-in failed: \(error.localizedDescription)")
+                            signInFail = true
                         }
+
+                        if let authResult = authResult {
+                            AppLogger.auth.notice("Email/password sign-in successful")
+                            let uid = authResult.user.uid
+                            withAnimation {
+                                userID = uid
+                            }
+                            UserManager(userId: uid).fetchUserItemCount { _ in }
+                        }
+                        loading = false
                     }
-                    loading = false
                 }
             }) {
                 HStack(spacing: 8) {
@@ -200,6 +204,7 @@ struct LoginView: View {
                                 withAnimation {
                                     userID = uid
                                 }
+                                UserManager(userId: uid).fetchUserItemCount { _ in }
                             case let .failure(error):
                                 signInFail = true
                                 AppLogger.auth.error("Apple Sign-In failed: \(error.localizedDescription)")
@@ -217,6 +222,7 @@ struct LoginView: View {
                             withAnimation {
                                 userID = uid
                             }
+                            UserManager(userId: uid).fetchUserItemCount { _ in }
                         case let .failure(error):
                             signInFail = true
                             AppLogger.auth.error("Google Sign-In failed: \(error.localizedDescription)")

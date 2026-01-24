@@ -28,6 +28,8 @@ class RewardsManager: ObservableObject {
         }
     }
 
+    @Published var hasLoadedPoints: Bool = false
+
     private var unlockedRewards: Set<String> = []
     private var didFetchFromFirestoreThisSession: Bool = false
     private var totalItemsObserver: NSObjectProtocol?
@@ -43,13 +45,16 @@ class RewardsManager: ObservableObject {
         ) { [weak self] notification in
             guard let self else { return }
             guard let changedUserId = notification.userInfo?["userId"] as? String,
-                  changedUserId == self.userId,
                   let count = notification.userInfo?["count"] as? Int
-            else {
+            else { return }
+
+            let activeUserId = UserDefaults.standard.string(forKey: "uid") ?? ""
+            guard activeUserId.isEmpty || changedUserId == activeUserId else {
                 return
             }
 
             self.totalItemsCreated = count
+            self.hasLoadedPoints = true
         }
     }
 
@@ -148,6 +153,7 @@ class RewardsManager: ObservableObject {
         listManager.fetchUserItemCount { count in
             DispatchQueue.main.async {
                 self.totalItemsCreated = count
+                self.hasLoadedPoints = true
                 AppLogger.rewards.info("Item count loaded: \(count, privacy: .public)")
             }
         }

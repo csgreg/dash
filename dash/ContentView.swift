@@ -46,6 +46,7 @@ struct ContentView: View {
             } else {
                 MainView(selectedTab: $navigateToHome)
                     .environmentObject(listManager)
+                    .id(userId)
                     .alert(joinSuccess ? "Success!" : "Join List", isPresented: $showJoinAlert) {
                         Button(joinSuccess ? "View Lists" : "OK", role: joinSuccess ? nil : .cancel) {
                             if joinSuccess {
