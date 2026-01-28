@@ -15,7 +15,7 @@ struct PrivacyPolicyView: View {
                     .font(.system(size: 28, weight: .bold))
                     .padding(.bottom, 10)
 
-                Text("Last updated: 30.11.2025")
+                Text("Last updated: 28.01.2026")
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
 
