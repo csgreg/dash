@@ -5,6 +5,7 @@
 //  Created by Gergo Csizmadia on 2023. 03. 12.
 //
 
+import FirebaseAnalytics
 import FirebaseCore
 import FirebaseFirestore
 import GoogleSignIn
@@ -19,6 +20,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         FirebaseApp.configure()
 
+        AnalyticsManager.configureFromStoredSetting()
+        AnalyticsManager.logAppOpen()
+
         // Enable Firestore offline persistence for better offline handling
         let firestore = Firestore.firestore()
         let settings = FirestoreSettings()
@@ -29,10 +33,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 
-    func application(_: UIApplication,
-                     open url: URL,
-                     options _: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool
-    {
+    func application(
+        _: UIApplication,
+        open url: URL,
+        options _: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
         return GIDSignIn.sharedInstance.handle(url)
     }
 

@@ -343,6 +343,7 @@ extension ListManager {
         if item.kind == .task {
             let cached = UserManager.getCachedTotalItemsCreated(userId: userId)
             UserManager.cacheTotalItemsCreated(cached + 1, userId: userId)
+            AnalyticsManager.logItemCreated(kind: "task")
         }
 
         itemRef.setData([

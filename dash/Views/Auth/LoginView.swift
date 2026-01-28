@@ -123,6 +123,7 @@ struct LoginView: View {
                                 userID = uid
                             }
                             UserManager(userId: uid).fetchUserItemCount { _ in }
+                            AnalyticsManager.logLoginSuccess(method: "password")
                         }
                         loading = false
                     }
@@ -205,6 +206,7 @@ struct LoginView: View {
                                     userID = uid
                                 }
                                 UserManager(userId: uid).fetchUserItemCount { _ in }
+                                AnalyticsManager.logLoginSuccess(method: "apple")
                             case let .failure(error):
                                 signInFail = true
                                 AppLogger.auth.error("Apple Sign-In failed: \(error.localizedDescription)")
@@ -223,6 +225,7 @@ struct LoginView: View {
                                 userID = uid
                             }
                             UserManager(userId: uid).fetchUserItemCount { _ in }
+                            AnalyticsManager.logLoginSuccess(method: "google")
                         case let .failure(error):
                             signInFail = true
                             AppLogger.auth.error("Google Sign-In failed: \(error.localizedDescription)")

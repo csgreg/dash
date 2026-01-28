@@ -118,6 +118,7 @@ struct MainView: View {
         default: tabName = "Unknown"
         }
         AppLogger.ui.debug("Tab changed to: \(tabName, privacy: .public)")
+        AnalyticsManager.logScreenView(screenName: tabName)
     }
 }
 

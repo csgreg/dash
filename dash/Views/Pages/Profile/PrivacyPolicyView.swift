@@ -22,7 +22,11 @@ struct PrivacyPolicyView: View {
                 // Introduction
                 SectionView(
                     title: "Introduction",
-                    content: "Welcome to Dash. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we handle your personal data when you use our app."
+                    content: """
+                    Welcome to Dash. We respect your privacy and are committed to protecting your personal data.
+
+                    This privacy policy will inform you about how we handle your personal data when you use our app.
+                    """
                 )
 
                 // Data We Collect
@@ -35,6 +39,7 @@ struct PrivacyPolicyView: View {
                     • First name (optional, if provided)
                     • Lists and items you create
                     • Usage statistics (items created, rewards)
+                    • App analytics data (e.g., app opens, screen views, feature usage)
                     • Device information (for app functionality)
                     • Feedback submissions (optional email, message, type, timestamp)
                     • Authentication data from Apple or Google (when using third-party sign-in)
@@ -58,7 +63,13 @@ struct PrivacyPolicyView: View {
                 // Data Storage
                 SectionView(
                     title: "Data Storage",
-                    content: "Your data is stored securely using Firebase (Google Cloud Platform). We implement appropriate security measures to protect your personal information.\n\nWe also cache data locally on your device for offline access. This cached data syncs automatically when you're online and is deleted when you uninstall the app or delete your account."
+                    content: """
+                    Your data is stored securely using Firebase (Google Cloud Platform).
+                    We implement appropriate security measures to protect your personal information.
+
+                    We also cache data locally on your device for offline access.
+                    This cached data syncs automatically when you're online and is deleted when you uninstall the app or delete your account.
+                    """
                 )
 
                 // Third-Party Services
@@ -67,7 +78,7 @@ struct PrivacyPolicyView: View {
                     content: """
                     We use the following third-party services to provide our app:
 
-                    Firebase (Google): Authentication, database, and cloud storage
+                    Firebase (Google): Authentication, database, cloud storage, and analytics
                     • Privacy Policy: firebase.google.com/support/privacy
 
                     Sign in with Apple: For authentication
@@ -77,6 +88,8 @@ struct PrivacyPolicyView: View {
                     • Privacy Policy: policies.google.com/privacy
 
                     These services may collect device and usage information as described in their privacy policies.
+
+                    You can disable analytics collection anytime in Profile settings.
                     """
                 )
 
@@ -88,7 +101,8 @@ struct PrivacyPolicyView: View {
 
                     Your data may be shared in these limited circumstances:
 
-                    • List Collaborators: When you share a list, collaborators can view the list name, items, and your user ID (not your email or personal information)
+                    • List Collaborators: When you share a list, collaborators can view the list name, items, and your user ID
+                      (not your email or personal information)
 
                     • Service Providers: Firebase/Google processes your data to provide cloud storage and authentication
 
@@ -118,14 +132,18 @@ struct PrivacyPolicyView: View {
 
                     If you delete your account, we will immediately delete your user profile and all lists you created. 
 
-                    For shared lists where you're a member (but not the creator), you will be removed from the list but the list itself will remain for other collaborators.
+                    For shared lists where you're a member (but not the creator), you will be removed from the list,
+                    but the list itself will remain for other collaborators.
                     """
                 )
 
                 // Legal Basis
                 SectionView(
                     title: "Legal Basis (EU Users)",
-                    content: "For users in the European Union, we process your data based on your consent (provided when you accept this Privacy Policy) and to fulfill our contract to provide the app service."
+                    content: """
+                    For users in the European Union, we process your data based on your consent
+                    (provided when you accept this Privacy Policy) and to fulfill our contract to provide the app service.
+                    """
                 )
 
                 // Contact

@@ -13,6 +13,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @AppStorage("uid") var userID: String = ""
+    @AppStorage(AnalyticsManager.analyticsEnabledKey) private var analyticsEnabled: Bool = true
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var rewardsManager: RewardsManager
     @State private var userEmail: String = ""
@@ -171,6 +172,32 @@ struct ProfileView: View {
 
             Divider().padding(.leading, 64)
 
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.green.opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.green)
+                }
+
+                Text("Analytics")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                Toggle("", isOn: $analyticsEnabled)
+                    .labelsHidden()
+                    .onChange(of: analyticsEnabled) { _, newValue in
+                        AnalyticsManager.setEnabled(newValue)
+                    }
+            }
+            .padding()
+
+            Divider().padding(.leading, 64)
+
             // Privacy Policy
             NavigationLink(destination: PrivacyPolicyView()) {
                 ProfileRow(
@@ -187,8 +214,8 @@ struct ProfileView: View {
             // Terms
             Button(action: {
                 if let url = URL(
-                    string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
-                {
+                    string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                ) {
                     UIApplication.shared.open(url)
                 }
             }) {
